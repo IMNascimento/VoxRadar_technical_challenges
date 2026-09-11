@@ -1,15 +1,11 @@
-# Alternativa simples de dependencias para o Nivel 0.
-# A partir do Nivel 1, use o Poetry (pyproject.toml) em vez deste arquivo.
-# Descomente/adicione o que for usar na sua abordagem.
+# ============================================================
+# VoxRadar · Kwai Collector · A1_Radar
+# Dependências de runtime do coletor Kwai.
+# Python 3.10+
+# ============================================================
 
-# Requisicoes HTTP
-# requests
-# httpx
+# Automação de navegador (interceptação de rede + SSR)
+playwright==1.47.0
 
-# Automacao de navegador (alternativa ao HTTP puro)
-# playwright
-# selenium
-
-# Parsing / dados
-# beautifulsoup4
-# python-dotenv
+# Carregamento de variáveis de ambiente (.env)
+python-dotenv==1.0.1

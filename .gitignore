@@ -24,3 +24,6 @@ htmlcov/
 .idea/
 .vscode/
 .DS_Store
+
+# Saída dos coletores
+out/
