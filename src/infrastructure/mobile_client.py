@@ -20,7 +20,7 @@ Os parâmetros abaixo são o **contexto completo capturado do app** (Kwai Lite
 app ao máximo (`timestamp`/`session_id` são gerados por requisição, como o app
 faz). Existe uma **escada de fallback** documentada: se o gateway endurecer,
 o mínimo provado (`kpn` + `appver` no query; `photoId`/`count`/`pcursor`/
-`client_key`/`sig` no corpo) é aceito — ver ``docs/solucao_api_movel_anonima.md`` §3.
+`client_key`/`sig` no corpo) é aceito — ver ``solucao_api_movel_anonima.md`` §3.
 """
 
 from __future__ import annotations

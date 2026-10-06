@@ -103,7 +103,7 @@ def test_requisicao_envia_o_contexto_completo_do_app(settings: Settings) -> None
 
     Se alguém reduzir `DEFAULT_QUERY`/`DEFAULT_BODY` "por limpeza", este teste
     falha: a emulação máxima do app é intencional e o mínimo provado é apenas a
-    escada de fallback documentada em `docs/solucao_api_movel_anonima.md` §3.
+    escada de fallback documentada em `solucao_api_movel_anonima.md` §3.
     """
     route = respx.post(COMMENT_HOST + COMMENT_PATH).mock(
         return_value=httpx.Response(

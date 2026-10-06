@@ -1,6 +1,6 @@
 """Modelos de dados que validam o contrato de saída (schemas VoxRadar).
 
-Referência: ``docs/schemas.md`` do desafio. Os modelos garantem que a saída
+Referência: ``schemas.md`` do desafio. Os modelos garantem que a saída
 JSON seja sempre aderente ao contrato, independentemente da fonte dos dados.
 """
 
