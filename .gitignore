@@ -1,26 +1,20 @@
+# Segredos e configuração local
+.env
+
+# Saídas de execução
+out/
+
 # Python
 __pycache__/
 *.py[cod]
 *.egg-info/
-.eggs/
-build/
-dist/
-.venv/
-venv/
-env/
-
-# Ambiente / segredos
-.env
-*.local
-
-# Ferramentas
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-.coverage
 htmlcov/
+.coverage
+.coverage.*
 
-# IDE / SO
-.idea/
-.vscode/
-.DS_Store
+# Ambientes virtuais
+.venv/
+venv/

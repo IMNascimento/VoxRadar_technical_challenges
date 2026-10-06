@@ -1,0 +1,524 @@
+{
+  "result": 1,
+  "feeds": [
+    {
+      "timestamp": 1720226579842,
+      "photo_id": 5255569396387029981,
+      "user_name": "FTV ESPORTE",
+      "user_sex": "M",
+      "kwai_id": "FtvEsporteFutebol",
+      "user_text": "FTV ESPORTE:\nINFORMAÇÕES EM TEMPO REAL, PARA OS AMANTES DE FUTBOL, AQUI VOCÊ FICA BEM INFORMADO...",
+      "comment_count": 10,
+      "forward_count": 2,
+      "view_count": 3472,
+      "like_count": 146,
+      "cover_thumbnail_urls": [
+        {
+          "cdn": "p16-kimg.kwai.net",
+          "url": "https://p16-kimg.kwai.net/kimg/EKzM1y8qmQEKAnMzEg1waG90by1vdmVyc2VhGoMBdXBpYy8yMDI0LzA3LzA2LzA4L0JNakF5TkRBM01EWXdPRFF3TVRWZk1UVXdNREF4TkRZME1URTNOamN3WHpFMU1ERXdOalE1T0RFNE16YzFNMTh5WHpNPV9vdXVfQmEzZDk3ZTM4YmUzMGZiNDUwNzMxOWRkZTJkNGI4YjYwLndlYnA.webp"
+        },
+        {
+          "cdn": "p15-kimg.kwai.net",
+          "url": "https://p15-kimg.kwai.net/kimg/EKzM1y8qmQEKAnMzEg1waG90by1vdmVyc2VhGoMBdXBpYy8yMDI0LzA3LzA2LzA4L0JNakF5TkRBM01EWXdPRFF3TVRWZk1UVXdNREF4TkRZME1URTNOamN3WHpFMU1ERXdOalE1T0RFNE16YzFNMTh5WHpNPV9vdXVfQmEzZDk3ZTM4YmUzMGZiNDUwNzMxOWRkZTJkNGI4YjYwLndlYnA.webp"
+        }
+      ],
+      "cover_first_frame_urls": [
+        {
+          "cdn": "aws-br-pic.kwai.net",
+          "url": "https://aws-br-pic.kwai.net/upic/2024/07/06/08/BMjAyNDA3MDYwODQwMTVfMTUwMDAxNDY0MTE3NjcwXzE1MDEwNjQ5ODE4Mzc1M18yXzM=_offn_Bb4c17b925c5012c713886b20194869f4.webp?tag=1-1788871442-s-0-lxdfx9rmlr-868272e8afccf713"
+        },
+        {
+          "cdn": "ak-br-pic.kwai.net",
+          "url": "https://ak-br-pic.kwai.net/upic/2024/07/06/08/BMjAyNDA3MDYwODQwMTVfMTUwMDAxNDY0MTE3NjcwXzE1MDEwNjQ5ODE4Mzc1M18yXzM=_offn_Bb4c17b925c5012c713886b20194869f4.webp?tag=1-1788871442-s-1-8xjajg7ewj-a75407c1a9f94c88"
+        }
+      ],
+      "time": "2024-07-06 08:42:59",
+      "photo_id_str": "5255569396387029981",
+      "verified_num": 0,
+      "verified_copy": null,
+      "liked": 0,
+      "following": 0,
+      "verified": false,
+      "headurls": [
+        {
+          "cdn": "aws-br-pic.kwai.net",
+          "url": "https://aws-br-pic.kwai.net/bs2/overseaHead/20260731090845_BMTUwMDAxNDY0MTE3Njcw_t.jpg"
+        },
+        {
+          "cdn": "ak-br-pic.kwai.net",
+          "url": "https://ak-br-pic.kwai.net/bs2/overseaHead/20260731090845_BMTUwMDAxNDY0MTE3Njcw_t.jpg"
+        }
+      ],
+      "main_mv_urls": [
+        {
+          "cdn": "aws-br-cdn.kwai.net",
+          "url": "https://aws-br-cdn.kwai.net/upic/2024/07/06/08/BMjAyNDA3MDYwODQwMTVfMTUwMDAxNDY0MTE3NjcwXzE1MDEwNjQ5ODE4Mzc1M18yXzM=_b_Bca61dd76805d7eb23db39a7ed1c032f7.mp4?tag=1-1788871442-s-0-axovkr5kek-c7489d4ee8ea980a"
+        },
+        {
+          "cdn": "ak-br-cdn.kwai.net",
+          "url": "https://ak-br-cdn.kwai.net/upic/2024/07/06/08/BMjAyNDA3MDYwODQwMTVfMTUwMDAxNDY0MTE3NjcwXzE1MDEwNjQ5ODE4Mzc1M18yXzM=_b_Bca61dd76805d7eb23db39a7ed1c032f7.mp4?tag=1-1788871442-s-1-bjk1jngwgr-ea1d8aed94366f73"
+        }
+      ],
+      "reco_reason": "s3",
+      "forward_stats_params": {
+        "et": "1_u/4886755491719476763_s3"
+      },
+      "transcode_manifest_info": {
+        "version": "2.0.0",
+        "businessType": 2,
+        "mediaType": 2,
+        "videoId": "1cf3ce650bcf5bb5",
+        "hideAuto": false,
+        "manualDefaultSelect": false,
+        "stereoType": 0,
+        "adaptationSet": [
+          {
+            "id": 1,
+            "duration": 165001,
+            "representation": [
+              {
+                "id": 1,
+                "url": "https://aws-br-cdn.kwai.net/upic/2024/07/06/08/BMjAyNDA3MDYwODQwMTVfMTUwMDAxNDY0MTE3NjcwXzE1MDEwNjQ5ODE4Mzc1M18yXzM=_b_Bca61dd76805d7eb23db39a7ed1c032f7.mp4?tt=b&clientCacheKey=e391b328df64bb9bdf1e29ed9c68a8df&ss=vpm&tag=1-1788871442-unknown-0-13i84xrfbk-072b23ef00935729",
+                "backupUrl": [
+                  "https://ak-br-cdn.kwai.net/upic/2024/07/06/08/BMjAyNDA3MDYwODQwMTVfMTUwMDAxNDY0MTE3NjcwXzE1MDEwNjQ5ODE4Mzc1M18yXzM=_b_Bca61dd76805d7eb23db39a7ed1c032f7.mp4?tt=b&clientCacheKey=e391b328df64bb9bdf1e29ed9c68a8df&ss=vpm&tag=1-1788871442-unknown-0-rp2h4hevzg-609892d8f60d4b5b"
+                ],
+                "maxBitrate": 2548,
+                "avgBitrate": 600,
+                "videoCodec": "avc",
+                "width": 720,
+                "height": 1280,
+                "frameRate": 25.0,
+                "quality": 7.0,
+                "kvqScore": {
+                  "FR": -1.0,
+                  "NR": -1.0,
+                  "FRPost": -1.0,
+                  "NRPost": -1.0
+                },
+                "qualityType": "ohd",
+                "qualityLabel": "",
+                "featureP2sp": false,
+                "p2spCode": "{\"fRsn\":999,\"fixOpt\":-1,\"schTask\":\"v=0&p=0&s=0&d=0\",\"schCode\":-1,\"schRes\":\"\"}",
+                "hidden": false,
+                "disableAdaptive": false,
+                "defaultSelect": false,
+                "comment": "videoId=1cf3ce650bcf5bb5/tt=b",
+                "hdrType": 0,
+                "fileSize": 12377659,
+                "agc": false,
+                "mute": false,
+                "oriLoudness": 0.0,
+                "makeupGain": 0.0,
+                "realLoudness": -15.276,
+                "realNormalizeGain": 1.122,
+                "normalizeGain": 0.0
+              }
+            ]
+          }
+        ],
+        "playInfo": {
+          "bizType": 0,
+          "cdnTimeRangeLevel": 0,
+          "strategyBus": "{ }"
+        },
+        "videoFeature": {
+          "blurProbability": -1.0,
+          "blockyProbability": -1.0,
+          "avgEntropy": 25.31723149617513,
+          "mosScore": 0.5016276240348816,
+          "contrast": 0.052661497,
+          "underExposed": 2.1976233e-05,
+          "overExposed": 2.682209e-08
+        }
+      },
+      "web_feed_type": "PHOTO_CARD",
+      "user_id_str": "3xtesp258rm5494",
+      "comment": null,
+      "type": 1,
+      "music": null,
+      "caption": "JOGADORES DO SANTOS E CEARÁ FALARAM NO FIM DE JOGO PELO BRASILEIRÃO SÉRIE B #Santos #ceara #serieb #esporteviral #Futebol",
+      "description": null,
+      "keywords": null,
+      "ext_params": {
+        "mtype": 3,
+        "ftype": 0,
+        "h": 1280,
+        "w": 720,
+        "video": 165001,
+        "color": "555455",
+        "cw": 720,
+        "ch": 1280,
+        "sound": 164886,
+        "interval": 25,
+        "oriPath": null
+      },
+      "ai_content": false,
+      "ai_generated": false
+    },
+    {
+      "timestamp": 1705020574986,
+      "photo_id": 5247969573884845027,
+      "user_name": "Xandecuriosidade",
+      "user_sex": "M",
+      "kwai_id": "xandecuriosidades",
+      "user_text": "MELHOR CONTEÚDO VOCÊ ENCONTRA AQUI\n\nNOTÍCIAS E CURIOSIDADES\nvideo todo dia📷😍\n\nme segue na rede vizinha @xandecuriosidades",
+      "comment_count": 202,
+      "forward_count": 519,
+      "view_count": 285250,
+      "like_count": 27371,
+      "cover_thumbnail_urls": [
+        {
+          "cdn": "p15-kimg.kwai.net",
+          "url": "https://p15-kimg.kwai.net/kimg/EKzM1y8qmQEKAnMzEg1waG90by1vdmVyc2VhGoMBdXBpYy8yMDI0LzAxLzEyLzA4L0JNakF5TkRBeE1USXdPRFEzTURoZk1UVXdNREF3TURJNU56Z3lOelE1WHpFMU1ERXdOVEF4T0RVeU5qa3dPVjh5WHpNPV9vdXVfQjI5NDRiZjk2NmUwNzRmZWRkODY5OGExMTI0MzQ4NjlmLndlYnA.webp"
+        },
+        {
+          "cdn": "p16-kimg.kwai.net",
+          "url": "https://p16-kimg.kwai.net/kimg/EKzM1y8qmQEKAnMzEg1waG90by1vdmVyc2VhGoMBdXBpYy8yMDI0LzAxLzEyLzA4L0JNakF5TkRBeE1USXdPRFEzTURoZk1UVXdNREF3TURJNU56Z3lOelE1WHpFMU1ERXdOVEF4T0RVeU5qa3dPVjh5WHpNPV9vdXVfQjI5NDRiZjk2NmUwNzRmZWRkODY5OGExMTI0MzQ4NjlmLndlYnA.webp"
+        }
+      ],
+      "cover_first_frame_urls": [
+        {
+          "cdn": "aws-br-pic.kwai.net",
+          "url": "https://aws-br-pic.kwai.net/upic/2024/01/12/08/BMjAyNDAxMTIwODQ3MDhfMTUwMDAwMDI5NzgyNzQ5XzE1MDEwNTAxODUyNjkwOV8yXzM=_offn_B41caaecf77b0b3f5cc584d9ea32a7784.webp?tag=1-1788871442-s-0-ijxnce0pbb-77e33cd1d9e09fba"
+        },
+        {
+          "cdn": "ak-br-pic.kwai.net",
+          "url": "https://ak-br-pic.kwai.net/upic/2024/01/12/08/BMjAyNDAxMTIwODQ3MDhfMTUwMDAwMDI5NzgyNzQ5XzE1MDEwNTAxODUyNjkwOV8yXzM=_offn_B41caaecf77b0b3f5cc584d9ea32a7784.webp?tag=1-1788871442-s-1-ynnsficrgq-08b6222986439369"
+        }
+      ],
+      "time": "2024-01-12 08:49:34",
+      "photo_id_str": "5247969573884845027",
+      "verified_num": 0,
+      "verified_copy": null,
+      "liked": 0,
+      "following": 0,
+      "verified": false,
+      "headurls": [
+        {
+          "cdn": "aws-br-pic.kwai.net",
+          "url": "https://aws-br-pic.kwai.net/bs2/overseaHead/20230603050335_BMTUwMDAwMDI5NzgyNzQ5_t.jpg"
+        },
+        {
+          "cdn": "ak-br-pic.kwai.net",
+          "url": "https://ak-br-pic.kwai.net/bs2/overseaHead/20230603050335_BMTUwMDAwMDI5NzgyNzQ5_t.jpg"
+        }
+      ],
+      "main_mv_urls": [
+        {
+          "cdn": "aws-br-cdn.kwai.net",
+          "url": "https://aws-br-cdn.kwai.net/upic/2024/01/12/08/BMjAyNDAxMTIwODQ3MDhfMTUwMDAwMDI5NzgyNzQ5XzE1MDEwNTAxODUyNjkwOV8yXzM=_b_B3d56db6fb913c37aac4a7f2395b1d5a1.mp4?tag=1-1788871442-s-0-epsa1jkxmw-8243a28416bd62d3"
+        },
+        {
+          "cdn": "ak-br-cdn.kwai.net",
+          "url": "https://ak-br-cdn.kwai.net/upic/2024/01/12/08/BMjAyNDAxMTIwODQ3MDhfMTUwMDAwMDI5NzgyNzQ5XzE1MDEwNTAxODUyNjkwOV8yXzM=_b_B3d56db6fb913c37aac4a7f2395b1d5a1.mp4?tag=1-1788871442-s-1-rfuyidejk9-d02ea5090b709ca4"
+        }
+      ],
+      "reco_reason": "s3",
+      "forward_stats_params": {
+        "et": "1_u/4886755491719476763_s3"
+      },
+      "transcode_manifest_info": {
+        "version": "2.0.0",
+        "businessType": 2,
+        "mediaType": 2,
+        "videoId": "c0a9d379d179e59c",
+        "hideAuto": false,
+        "manualDefaultSelect": false,
+        "stereoType": 0,
+        "adaptationSet": [
+          {
+            "id": 1,
+            "duration": 89583,
+            "representation": [
+              {
+                "id": 1,
+                "url": "https://aws-br-cdn.kwai.net/upic/2024/01/12/08/BMjAyNDAxMTIwODQ3MDhfMTUwMDAwMDI5NzgyNzQ5XzE1MDEwNTAxODUyNjkwOV8yXzM=_sl200Ohd1_B9c6e15005fd7a2313aea11bb821d7862.mp4?tt=sl200Ohd1&clientCacheKey=4b947d0d20ed2bb1171c8079e4917bd4&ss=vpm&tag=1-1788871442-unknown-0-yhyyiqngos-2d64bccf2b3903c8",
+                "backupUrl": [
+                  "https://ak-br-cdn.kwai.net/upic/2024/01/12/08/BMjAyNDAxMTIwODQ3MDhfMTUwMDAwMDI5NzgyNzQ5XzE1MDEwNTAxODUyNjkwOV8yXzM=_sl200Ohd1_B9c6e15005fd7a2313aea11bb821d7862.mp4?tt=sl200Ohd1&clientCacheKey=4b947d0d20ed2bb1171c8079e4917bd4&ss=vpm&tag=1-1788871442-unknown-0-dkj69we4sb-5e01a827a0e14cd4"
+                ],
+                "maxBitrate": 1944,
+                "avgBitrate": 1296,
+                "videoCodec": "hevc",
+                "width": 720,
+                "height": 1280,
+                "frameRate": 30.0,
+                "quality": 7.0,
+                "kvqScore": {
+                  "FR": -1.0,
+                  "NR": 2.6139323711395264,
+                  "FRPost": -1.0,
+                  "NRPost": -1.0,
+                  "sharpness": 0.4573,
+                  "blur": 0.3902
+                },
+                "qualityType": "ohd",
+                "qualityLabel": "",
+                "featureP2sp": false,
+                "p2spCode": "{\"fRsn\":999,\"fixOpt\":-1,\"schTask\":\"v=0&p=0&s=0&d=0\",\"schCode\":-1,\"schRes\":\"\"}",
+                "hidden": false,
+                "disableAdaptive": false,
+                "defaultSelect": false,
+                "comment": "videoId=c0a9d379d179e59c/tt=sl200Ohd1",
+                "hdrType": 0,
+                "fileSize": 14514203,
+                "agc": false,
+                "mute": false,
+                "oriLoudness": 0.0,
+                "makeupGain": 0.0,
+                "realLoudness": -11.427,
+                "realNormalizeGain": 1.0,
+                "normalizeGain": 0.0,
+                "colorInfo": {
+                  "yMean": 91.5451,
+                  "yMeanMax": 96.8052,
+                  "yMeanMin": 45.2977
+                }
+              },
+              {
+                "id": 2,
+                "url": "https://aws-br-cdn.kwai.net/upic/2024/01/12/08/BMjAyNDAxMTIwODQ3MDhfMTUwMDAwMDI5NzgyNzQ5XzE1MDEwNTAxODUyNjkwOV8yXzM=_b_B3d56db6fb913c37aac4a7f2395b1d5a1.mp4?tt=b&clientCacheKey=470b6189b6f78bca764b2307e78b248f&ss=vpm&tag=1-1788871442-unknown-0-1by9pytkff-436208f25cb6ae69",
+                "backupUrl": [
+                  "https://ak-br-cdn.kwai.net/upic/2024/01/12/08/BMjAyNDAxMTIwODQ3MDhfMTUwMDAwMDI5NzgyNzQ5XzE1MDEwNTAxODUyNjkwOV8yXzM=_b_B3d56db6fb913c37aac4a7f2395b1d5a1.mp4?tt=b&clientCacheKey=470b6189b6f78bca764b2307e78b248f&ss=vpm&tag=1-1788871442-unknown-0-uehfj9uauw-48a2f642d15e8c8e"
+                ],
+                "maxBitrate": 2548,
+                "avgBitrate": 2045,
+                "videoCodec": "avc",
+                "width": 720,
+                "height": 1280,
+                "frameRate": 30.0,
+                "quality": 7.0,
+                "kvqScore": {
+                  "FR": -1.0,
+                  "NR": 2.8258464336395264,
+                  "FRPost": -1.0,
+                  "NRPost": -1.0,
+                  "sharpness": 0.3709,
+                  "blur": 0.4114
+                },
+                "qualityType": "ohd",
+                "qualityLabel": "",
+                "featureP2sp": false,
+                "p2spCode": "{\"fRsn\":999,\"fixOpt\":-1,\"schTask\":\"v=0&p=0&s=0&d=0\",\"schCode\":-1,\"schRes\":\"\"}",
+                "hidden": false,
+                "disableAdaptive": false,
+                "defaultSelect": false,
+                "comment": "videoId=c0a9d379d179e59c/tt=b",
+                "hdrType": 0,
+                "fileSize": 22898892,
+                "agc": false,
+                "mute": false,
+                "oriLoudness": 0.0,
+                "makeupGain": 0.0,
+                "realLoudness": -11.427,
+                "realNormalizeGain": 1.0,
+                "normalizeGain": 0.0,
+                "colorInfo": {
+                  "yMean": 99.8455,
+                  "yMeanMax": 118.2984,
+                  "yMeanMin": 45.3166
+                }
+              }
+            ]
+          }
+        ],
+        "playInfo": {
+          "bizType": 0,
+          "cdnTimeRangeLevel": 0,
+          "strategyBus": "{ }"
+        },
+        "videoFeature": {
+          "blurProbability": -1.0,
+          "blockyProbability": -1.0,
+          "avgEntropy": 14.040085792541504,
+          "mosScore": 0.4458821415901184,
+          "contrast": 0.04174999,
+          "underExposed": 1.6987323e-07,
+          "overExposed": 6.616116e-07
+        }
+      },
+      "web_feed_type": "PHOTO_CARD",
+      "user_id_str": "3xinc6gb2jzdphu",
+      "comment": null,
+      "type": 1,
+      "music": null,
+      "caption": "IShowSpeed foi trolado por brasileiros uma comunidade que até chorou. #ishowspeed #trollado #comunidade #notícias #favela",
+      "description": null,
+      "keywords": null,
+      "ext_params": {
+        "mtype": 3,
+        "ftype": 0,
+        "h": 1280,
+        "w": 720,
+        "video": 89537,
+        "color": "979090",
+        "cw": 720,
+        "ch": 1280,
+        "sound": 89421,
+        "interval": 30,
+        "oriPath": null
+      },
+      "ai_content": false,
+      "ai_generated": false
+    },
+    {
+      "timestamp": 1730927398025,
+      "photo_id": 5258384144981007167,
+      "user_name": "Esportes🏅",
+      "user_sex": "U",
+      "kwai_id": "tvtcl048",
+      "user_text": "🚴🏻‍♂️🤾🏻‍♂️⛹🏻‍♂️🤸🏻‍♂️🏋🏻‍♂️🧗🏻‍♂️🤼🤽🏻‍♂️🏌🏻‍♂️🏄🏻‍♂️🏂🏻🪂🏄🏻‍♂️⛷️🤸🏻‍♂️⚽🛹🛴🎾🥅🏈🏀🏐🎳🏓🪃🤿🥊🕹️🏹🏍️🎯🏎️🥋Tudo em um só lugar🏆",
+      "comment_count": 33,
+      "forward_count": 302,
+      "view_count": 476302,
+      "like_count": 7673,
+      "cover_thumbnail_urls": [
+        {
+          "cdn": "p1-kimg.kwai.net",
+          "url": "https://p1-kimg.kwai.net/kimg/EKzM1y8qmQEKAnMzEg1waG90by1vdmVyc2VhGoMBdXBpYy8yMDI0LzExLzA3LzA1L0JNakF5TkRFeE1EY3dOVEE1TkRGZk1UVXdNREF4TkRRMk9Ea3lOREE0WHpFMU1ERXdOelE1TWprek5ETXlOVjh5WHpNPV9vdXVfQmZhMWQyMjQ5ZjdhNWQ1YWJmZTNmZjBkNTU2ZjI1MTI5LndlYnA.webp"
+        },
+        {
+          "cdn": "p15-kimg.kwai.net",
+          "url": "https://p15-kimg.kwai.net/kimg/EKzM1y8qmQEKAnMzEg1waG90by1vdmVyc2VhGoMBdXBpYy8yMDI0LzExLzA3LzA1L0JNakF5TkRFeE1EY3dOVEE1TkRGZk1UVXdNREF4TkRRMk9Ea3lOREE0WHpFMU1ERXdOelE1TWprek5ETXlOVjh5WHpNPV9vdXVfQmZhMWQyMjQ5ZjdhNWQ1YWJmZTNmZjBkNTU2ZjI1MTI5LndlYnA.webp"
+        }
+      ],
+      "cover_first_frame_urls": [
+        {
+          "cdn": "aws-br-pic.kwai.net",
+          "url": "https://aws-br-pic.kwai.net/upic/2024/11/07/05/BMjAyNDExMDcwNTA5NDFfMTUwMDAxNDQ2ODkyNDA4XzE1MDEwNzQ5MjkzNDMyNV8yXzM=_offn_Be32096de78b3b96f9ad0e74077720c23.webp?tag=1-1788871442-s-0-sy2yg9sq4y-a0c97d468b0e625e"
+        },
+        {
+          "cdn": "ak-br-pic.kwai.net",
+          "url": "https://ak-br-pic.kwai.net/upic/2024/11/07/05/BMjAyNDExMDcwNTA5NDFfMTUwMDAxNDQ2ODkyNDA4XzE1MDEwNzQ5MjkzNDMyNV8yXzM=_offn_Be32096de78b3b96f9ad0e74077720c23.webp?tag=1-1788871442-s-1-gxgfw5hbkk-170c0ef41ab3cb93"
+        }
+      ],
+      "time": "2024-11-07 05:09:58",
+      "photo_id_str": "5258384144981007167",
+      "verified_num": 0,
+      "verified_copy": null,
+      "liked": 0,
+      "following": 0,
+      "verified": false,
+      "headurls": [
+        {
+          "cdn": "aws-br-pic.kwai.net",
+          "url": "https://aws-br-pic.kwai.net/bs2/overseaHead/20241028231238_BMTUwMDAxNDQ2ODkyNDA4_t.jpg"
+        },
+        {
+          "cdn": "ak-br-pic.kwai.net",
+          "url": "https://ak-br-pic.kwai.net/bs2/overseaHead/20241028231238_BMTUwMDAxNDQ2ODkyNDA4_t.jpg"
+        }
+      ],
+      "main_mv_urls": [
+        {
+          "cdn": "ak-br-cdn.kwai.net",
+          "url": "https://ak-br-cdn.kwai.net/upic/2024/11/07/05/BMjAyNDExMDcwNTA5NDFfMTUwMDAxNDQ2ODkyNDA4XzE1MDEwNzQ5MjkzNDMyNV8yXzM=_b_B5d416446aa4856a75c5819186689d572.mp4?tag=1-1788871442-s-0-ghkdftocmv-217284fa5245a96c"
+        },
+        {
+          "cdn": "aws-br-cdn.kwai.net",
+          "url": "https://aws-br-cdn.kwai.net/upic/2024/11/07/05/BMjAyNDExMDcwNTA5NDFfMTUwMDAxNDQ2ODkyNDA4XzE1MDEwNzQ5MjkzNDMyNV8yXzM=_b_B5d416446aa4856a75c5819186689d572.mp4?tag=1-1788871442-s-1-a4sqmfgq4j-02f8e6dce5dad08d"
+        }
+      ],
+      "reco_reason": "s3",
+      "forward_stats_params": {
+        "et": "1_u/4886755491719476763_s3"
+      },
+      "transcode_manifest_info": {
+        "version": "2.0.0",
+        "businessType": 2,
+        "mediaType": 2,
+        "videoId": "bd329e3334c40b35",
+        "hideAuto": false,
+        "manualDefaultSelect": false,
+        "stereoType": 0,
+        "adaptationSet": [
+          {
+            "id": 1,
+            "duration": 11285,
+            "representation": [
+              {
+                "id": 1,
+                "url": "https://aws-br-cdn.kwai.net/upic/2024/11/07/05/BMjAyNDExMDcwNTA5NDFfMTUwMDAxNDQ2ODkyNDA4XzE1MDEwNzQ5MjkzNDMyNV8yXzM=_b_B5d416446aa4856a75c5819186689d572.mp4?tt=b&clientCacheKey=f7bd58b4ddfcc08268e98e608b3cce99&ss=vpm&tag=1-1788871442-unknown-0-9y9ew8ha0z-d7b4ed0352485573",
+                "backupUrl": [
+                  "https://ak-br-cdn.kwai.net/upic/2024/11/07/05/BMjAyNDExMDcwNTA5NDFfMTUwMDAxNDQ2ODkyNDA4XzE1MDEwNzQ5MjkzNDMyNV8yXzM=_b_B5d416446aa4856a75c5819186689d572.mp4?tt=b&clientCacheKey=f7bd58b4ddfcc08268e98e608b3cce99&ss=vpm&tag=1-1788871442-unknown-0-ind6feaiqk-59595baf7c7abb5d"
+                ],
+                "maxBitrate": 2548,
+                "avgBitrate": 1532,
+                "videoCodec": "avc",
+                "width": 720,
+                "height": 1280,
+                "frameRate": 30.0,
+                "quality": 7.0,
+                "kvqScore": {
+                  "FR": -1.0,
+                  "NR": 3.0475261211395264,
+                  "FRPost": -1.0,
+                  "NRPost": -1.0,
+                  "sharpness": 0.3574,
+                  "blur": 0.3521
+                },
+                "qualityType": "ohd",
+                "qualityLabel": "",
+                "featureP2sp": false,
+                "p2spCode": "{\"fRsn\":999,\"fixOpt\":-1,\"schTask\":\"v=0&p=0&s=0&d=0\",\"schCode\":-1,\"schRes\":\"\"}",
+                "hidden": false,
+                "disableAdaptive": false,
+                "defaultSelect": false,
+                "comment": "videoId=bd329e3334c40b35/tt=b",
+                "hdrType": 0,
+                "fileSize": 2161886,
+                "agc": false,
+                "mute": false,
+                "oriLoudness": 0.0,
+                "makeupGain": 0.0,
+                "realLoudness": -15.604,
+                "realNormalizeGain": 1.122,
+                "normalizeGain": 0.0,
+                "colorInfo": {}
+              }
+            ]
+          }
+        ],
+        "playInfo": {
+          "bizType": 0,
+          "cdnTimeRangeLevel": 0,
+          "strategyBus": "{ }"
+        },
+        "videoFeature": {
+          "blurProbability": -1.0,
+          "blockyProbability": -1.0,
+          "avgEntropy": 19.65726351737976,
+          "mosScore": 0.5452473759651184,
+          "contrast": 0.0021777973,
+          "underExposed": 5.9604645e-08,
+          "overExposed": 0.00010173023
+        }
+      },
+      "web_feed_type": "PHOTO_CARD",
+      "user_id_str": "3xtec2kufwgj6r2",
+      "comment": null,
+      "type": 1,
+      "music": null,
+      "caption": "Esporte com humor🥵🤣",
+      "description": null,
+      "keywords": null,
+      "ext_params": {
+        "mtype": 3,
+        "ftype": 0,
+        "h": 1280,
+        "w": 720,
+        "video": 11285,
+        "color": "6B5847",
+        "cw": 720,
+        "ch": 1280,
+        "sound": 11170,
+        "interval": 30,
+        "oriPath": null
+      },
+      "ai_content": false,
+      "ai_generated": false
+    }
+  ],
+  "podName": "cloud-3536336-1568768-1410046-185-deploy-66bc4596c4-hpct2",
+  "from": "search",
+  "host-name": "public-hwsgp4-kce-node359.sgpaz1.sgp.kwaidc.com"
+}

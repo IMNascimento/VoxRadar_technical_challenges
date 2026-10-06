@@ -1,0 +1,958 @@
+{
+  "feeds": [
+    {
+      "comment_count": 19,
+      "displayTime": "",
+      "main_mv_urls": [
+        {
+          "cdn": "aws-br-cdn.kwai.net",
+          "url": "https://aws-br-cdn.kwai.net/upic/2024/10/03/04/BMjAyNDEwMDMwNDQ3MDJfMTUwMDAxMjE0Njg1MTM3XzE1MDEwNzIyMzA5MDAyMF8yXzM=_b_B3b3201758c73c3d0a7b8e313d2b85c34.mp4?tag=1-1788871443-s-0-va0sg5nd1s-f6a482c20834dbd6"
+        },
+        {
+          "cdn": "ak-br-cdn.kwai.net",
+          "url": "https://ak-br-cdn.kwai.net/upic/2024/10/03/04/BMjAyNDEwMDMwNDQ3MDJfMTUwMDAxMjE0Njg1MTM3XzE1MDEwNzIyMzA5MDAyMF8yXzM=_b_B3b3201758c73c3d0a7b8e313d2b85c34.mp4?tag=1-1788871443-s-1-dlmexgu1iy-5bae38f6a0a47c32"
+        }
+      ],
+      "reco_reason": "s3",
+      "show_repost_entrance": true,
+      "hetuTag": {
+        "photoTag": "机动车;Vehicle",
+        "photoSecondTag": "摩托车;Motorcycle",
+        "photoTagText": "",
+        "photoSecondTagText": "Motorcycle"
+      },
+      "forward_count": 13,
+      "profile_user_top": false,
+      "caption": "GOSTOU? SEGUE PARA MAIS V&Iacute;DEOS! 🥰👀 #parkour #motovlog #Sports #viral",
+      "exp_tag": "1_a/4886754355707062361_s3",
+      "master_photo": false,
+      "coverCaption": "GOSTOU? SEGUE PARA MAIS V&Iacute;DEOS! 🥰👀",
+      "type": 1,
+      "hasHotComment": false,
+      "liked": 0,
+      "tag_hash_type": 1,
+      "verifiedInfo": {
+        "iconUrl": "",
+        "desc": ""
+      },
+      "shareView": {
+        "desc": "Share",
+        "share_reason_type": "",
+        "share_panel_tip_i18n_key": "",
+        "share_panel_tip_i18n_value": "",
+        "high_level_share_reason_i18n_key": "",
+        "high_level_share_reason_i18n_value": "",
+        "high_level_auto_share_reason_i18n_key": "",
+        "high_level_auto_share_reason_i18n_value": "",
+        "share_reason_extra_info": "",
+        "disable_guide": true,
+        "show_share_server_link_btn": false
+      },
+      "score": 0,
+      "music": {
+        "id": 11149191841,
+        "type": 10,
+        "name": "",
+        "url": "https://aws-br-pic.kwai.net/bs2/ost/MTUwMTA3MjIzMDkwMDIwXzE1MDAwMTIxNDY4NTEzNw.m4a",
+        "artist": "PARKOUR CITY",
+        "avatarUrl": "https://aws-br-pic.kwai.net/bs2/overseaHead/20240312004827_BMTUwMDAxMjE0Njg1MTM3_tw.webp",
+        "uploadTime": 1727902114370,
+        "genreId": 0,
+        "user": {
+          "level": 0,
+          "followStatus": 0,
+          "headurl": "https://aws-br-pic.kwai.net/bs2/overseaHead/20240312004827_BMTUwMDAxMjE0Njg1MTM3_sw.webp",
+          "headurls": [
+            {
+              "cdn": "aws-br-pic.kwai.net",
+              "url": "https://aws-br-pic.kwai.net/bs2/overseaHead/20240312004827_BMTUwMDAxMjE0Njg1MTM3_sw.webp"
+            },
+            {
+              "cdn": "ak-br-pic.kwai.net",
+              "url": "https://ak-br-pic.kwai.net/bs2/overseaHead/20240312004827_BMTUwMDAxMjE0Njg1MTM3_sw.webp"
+            }
+          ],
+          "verifiedNum": 0,
+          "verifiedCopy": null,
+          "eid": "3xdrh56nkbz8c42",
+          "user_id": 150001214685137,
+          "user_name": "PARKOUR CITY",
+          "user_sex": "F",
+          "fans_num": 0,
+          "pymk_ext_params": null
+        },
+        "audioType": 1,
+        "duration": 31,
+        "audioUrls": [
+          {
+            "cdn": "aws-br-pic.kwai.net",
+            "url": "https://aws-br-pic.kwai.net/bs2/ost/MTUwMTA3MjIzMDkwMDIwXzE1MDAwMTIxNDY4NTEzNw.m4a"
+          },
+          {
+            "cdn": "ak-br-pic.kwai.net",
+            "url": "https://ak-br-pic.kwai.net/bs2/ost/MTUwMTA3MjIzMDkwMDIwXzE1MDAwMTIxNDY4NTEzNw.m4a"
+          }
+        ],
+        "musicFileRawKey": "MTUwMTA3MjIzMDkwMDIwXzE1MDAwMTIxNDY4NTEzNw.m4a",
+        "avatarUrls": [
+          {
+            "cdn": "aws-br-pic.kwai.net",
+            "url": "https://aws-br-pic.kwai.net/bs2/overseaHead/20240312004827_BMTUwMDAxMjE0Njg1MTM3_tw.webp"
+          },
+          {
+            "cdn": "ak-br-pic.kwai.net",
+            "url": "https://ak-br-pic.kwai.net/bs2/overseaHead/20240312004827_BMTUwMDAxMjE0Njg1MTM3_tw.webp"
+          }
+        ],
+        "musicExtraView": {
+          "channel": 0
+        },
+        "photoCount": 2,
+        "playListInfo": null,
+        "musicRankEntrance": null,
+        "originalMusicInfo": null
+      },
+      "ugcSoundPhotoId": 5240651225143682000,
+      "offlineTeachPhoto": false,
+      "showFriendsQuickMessage": false,
+      "enableQuickPrivateMsg": false,
+      "hated": 0,
+      "user_text": "⭐ GOSTA DE ADRENALINA? É O PERFIL CERTO.\n📌 VÍDEOS TODOS OS DIAS!",
+      "user_living": false,
+      "commentAISearch": false,
+      "text_location": {
+        "left_ratio": 0.10138,
+        "top_ratio": 0.15833,
+        "width_ratio": 0.79861,
+        "height_ratio": 0.16145
+      },
+      "like_count": 193,
+      "level": 0,
+      "main_mv_urls_rate": [
+        {
+          "lower_bound": 0,
+          "upper_bound": 400,
+          "rate": 334,
+          "level": "LOW_265",
+          "quality": 3,
+          "maxRate": 422,
+          "width": 464,
+          "height": 618,
+          "videoSize": 1316688,
+          "prefetchMsWifi": 0,
+          "prefetchMs4G": 0,
+          "prefetchMsOther": 0,
+          "urls": [
+            {
+              "cdn": "aws-br-cdn.kwai.net",
+              "url": "https://aws-br-cdn.kwai.net/upic/2024/10/03/04/BMjAyNDEwMDMwNDQ3MDJfMTUwMDAxMjE0Njg1MTM3XzE1MDEwNzIyMzA5MDAyMF8yXzM=_osd24_Bdf4c9d59476e38a0883fff1bfb83441e.mp4?tag=1-1788871443-s-0-va0sg5nd1s-f6a482c20834dbd6&tt=osd24"
+            },
+            {
+              "cdn": "ak-br-cdn.kwai.net",
+              "url": "https://ak-br-cdn.kwai.net/upic/2024/10/03/04/BMjAyNDEwMDMwNDQ3MDJfMTUwMDAxMjE0Njg1MTM3XzE1MDEwNzIyMzA5MDAyMF8yXzM=_osd24_Bdf4c9d59476e38a0883fff1bfb83441e.mp4?tag=1-1788871443-s-1-dlmexgu1iy-5bae38f6a0a47c32&tt=osd24"
+            }
+          ]
+        },
+        {
+          "lower_bound": 401,
+          "upper_bound": 705,
+          "rate": 588,
+          "level": "MIDDLE_265",
+          "quality": 5,
+          "maxRate": 782,
+          "width": 540,
+          "height": 720,
+          "videoSize": 2313260,
+          "prefetchMsWifi": 0,
+          "prefetchMs4G": 0,
+          "prefetchMsOther": 0,
+          "urls": [
+            {
+              "cdn": "aws-br-cdn.kwai.net",
+              "url": "https://aws-br-cdn.kwai.net/upic/2024/10/03/04/BMjAyNDEwMDMwNDQ3MDJfMTUwMDAxMjE0Njg1MTM3XzE1MDEwNzIyMzA5MDAyMF8yXzM=_omd27_B0653eb80856fc4df82e121ba11034dba.mp4?tag=1-1788871443-s-0-va0sg5nd1s-f6a482c20834dbd6&tt=omd27"
+            },
+            {
+              "cdn": "ak-br-cdn.kwai.net",
+              "url": "https://ak-br-cdn.kwai.net/upic/2024/10/03/04/BMjAyNDEwMDMwNDQ3MDJfMTUwMDAxMjE0Njg1MTM3XzE1MDEwNzIyMzA5MDAyMF8yXzM=_omd27_B0653eb80856fc4df82e121ba11034dba.mp4?tag=1-1788871443-s-1-dlmexgu1iy-5bae38f6a0a47c32&tt=omd27"
+            }
+          ]
+        },
+        {
+          "lower_bound": 706,
+          "upper_bound": 2147483647,
+          "rate": 1014,
+          "level": "HIGH_265",
+          "quality": 6,
+          "maxRate": 1696,
+          "width": 720,
+          "height": 960,
+          "videoSize": 3989744,
+          "prefetchMsWifi": 0,
+          "prefetchMs4G": 0,
+          "prefetchMsOther": 0,
+          "urls": [
+            {
+              "cdn": "aws-br-cdn.kwai.net",
+              "url": "https://aws-br-cdn.kwai.net/upic/2024/10/03/04/BMjAyNDEwMDMwNDQ3MDJfMTUwMDAxMjE0Njg1MTM3XzE1MDEwNzIyMzA5MDAyMF8yXzM=_ohd72_Be0ad5094d31b7d6e98985f01be944c41.mp4?tag=1-1788871443-s-0-va0sg5nd1s-f6a482c20834dbd6&tt=ohd72"
+            },
+            {
+              "cdn": "ak-br-cdn.kwai.net",
+              "url": "https://ak-br-cdn.kwai.net/upic/2024/10/03/04/BMjAyNDEwMDMwNDQ3MDJfMTUwMDAxMjE0Njg1MTM3XzE1MDEwNzIyMzA5MDAyMF8yXzM=_ohd72_Be0ad5094d31b7d6e98985f01be944c41.mp4?tag=1-1788871443-s-1-dlmexgu1iy-5bae38f6a0a47c32&tt=ohd72"
+            }
+          ]
+        }
+      ],
+      "isFans": false,
+      "partnerUser": true,
+      "photoExtInfo": {
+        "poll": "",
+        "pollNew": null,
+        "isMvPhoto": false,
+        "mvTemplateId": null,
+        "cutInfo": "",
+        "mvTemplateName": null,
+        "mvCover": null,
+        "shootGuide": 0,
+        "androidMinVer": null,
+        "androidMaxVer": null,
+        "attribution": {},
+        "mvIcon": null,
+        "liveAppointId": "",
+        "trafficBoostCount": "",
+        "aiTitle": ""
+      },
+      "hasUgcSound": true,
+      "tags": [],
+      "offline_watchlist": {
+        "enable": false
+      },
+      "enable_repost": true,
+      "us_c": 0,
+      "favoriteView": {
+        "favorCount": 0,
+        "favor": false
+      },
+      "user_id": 150001214685137,
+      "us_d": 1,
+      "rewardInfo": {
+        "showIcon": false,
+        "praiseAble": false,
+        "canShowBar": false,
+        "text": null
+      },
+      "play_speed": {
+        "enable": true
+      },
+      "religionPhotoType": 0,
+      "following": 0,
+      "cover_thumbnail_urls": [
+        {
+          "cdn": "p16-kimg.kwai.net",
+          "url": "https://p16-kimg.kwai.net/kimg/EKzM1y8qmQEKAnMzEg1waG90by1vdmVyc2VhGoMBdXBpYy8yMDI0LzEwLzAzLzA0L0JNakF5TkRFd01ETXdORFEzTURKZk1UVXdNREF4TWpFME5qZzFNVE0zWHpFMU1ERXdOekl5TXpBNU1EQXlNRjh5WHpNPV9vdXVfQmIzNDE1OTdjNDc0NzVhNTRhNjJhOGY5MTA5Y2ZhNjlkLndlYnA.webp"
+        },
+        {
+          "cdn": "p15-kimg.kwai.net",
+          "url": "https://p15-kimg.kwai.net/kimg/EKzM1y8qmQEKAnMzEg1waG90by1vdmVyc2VhGoMBdXBpYy8yMDI0LzEwLzAzLzA0L0JNakF5TkRFd01ETXdORFEzTURKZk1UVXdNREF4TWpFME5qZzFNVE0zWHpFMU1ERXdOekl5TXpBNU1EQXlNRjh5WHpNPV9vdXVfQmIzNDE1OTdjNDc0NzVhNTRhNjJhOGY5MTA5Y2ZhNjlkLndlYnA.webp"
+        }
+      ],
+      "cover_first_frame_urls": [
+        {
+          "cdn": "aws-br-pic.kwai.net",
+          "url": "https://aws-br-pic.kwai.net/upic/2024/10/03/04/BMjAyNDEwMDMwNDQ3MDJfMTUwMDAxMjE0Njg1MTM3XzE1MDEwNzIyMzA5MDAyMF8yXzM=_offn_B3f29d5c0153a81008df3311b58dd587b.webp?tag=1-1788871443-s-0-zxadnkqlyo-c0c8ba4a47f80df3"
+        },
+        {
+          "cdn": "ak-br-pic.kwai.net",
+          "url": "https://ak-br-pic.kwai.net/upic/2024/10/03/04/BMjAyNDEwMDMwNDQ3MDJfMTUwMDAxMjE0Njg1MTM3XzE1MDEwNzIyMzA5MDAyMF8yXzM=_offn_B3f29d5c0153a81008df3311b58dd587b.webp?tag=1-1788871443-s-1-d1c8qbgm9r-0c2414ff4fbdc1b7"
+        }
+      ],
+      "pollInfo": null,
+      "verifiedNum": 0,
+      "hasAmazingComment": false,
+      "photo_id": 5240651225143682000,
+      "photo_status": 0,
+      "user_name": "PARKOUR CITY",
+      "sds_location": {
+        "video_width": 720,
+        "video_height": 960,
+        "left_x": 0,
+        "top_y": 334,
+        "right_x": 720,
+        "bottom_y": 782,
+        "ratio_wh": 1.6071428,
+        "cut_prob": 0.7777778
+      },
+      "headurls": [
+        {
+          "cdn": "aws-br-pic.kwai.net",
+          "url": "https://aws-br-pic.kwai.net/bs2/overseaHead/20240312004827_BMTUwMDAxMjE0Njg1MTM3_tw.webp"
+        },
+        {
+          "cdn": "ak-br-pic.kwai.net",
+          "url": "https://ak-br-pic.kwai.net/bs2/overseaHead/20240312004827_BMTUwMDAxMjE0Njg1MTM3_tw.webp"
+        }
+      ],
+      "marketingPhoto": false,
+      "transcode_manifest_info": {
+        "version": "2.0.0",
+        "businessType": 2,
+        "mediaType": 2,
+        "videoId": "77b5a85504af7fa1",
+        "hideAuto": false,
+        "manualDefaultSelect": false,
+        "stereoType": 0,
+        "adaptationSet": [
+          {
+            "id": 1,
+            "duration": 31465,
+            "representation": [
+              {
+                "id": 1,
+                "url": "https://aws-br-cdn.kwai.net/upic/2024/10/03/04/BMjAyNDEwMDMwNDQ3MDJfMTUwMDAxMjE0Njg1MTM3XzE1MDEwNzIyMzA5MDAyMF8yXzM=_sl200Ohd1_B4c7c76874fc9e919faf4c21560e39ce7.mp4?tt=sl200Ohd1&clientCacheKey=253efa5f0f0b04788b26f088e7af31c3&ss=vpm&tag=1-1788871443-unknown-0-rmvavsdodl-05f6e7fd55956671",
+                "backupUrl": [
+                  "https://ak-br-cdn.kwai.net/upic/2024/10/03/04/BMjAyNDEwMDMwNDQ3MDJfMTUwMDAxMjE0Njg1MTM3XzE1MDEwNzIyMzA5MDAyMF8yXzM=_sl200Ohd1_B4c7c76874fc9e919faf4c21560e39ce7.mp4?tt=sl200Ohd1&clientCacheKey=253efa5f0f0b04788b26f088e7af31c3&ss=vpm&tag=1-1788871443-unknown-0-p47s96oxkk-869567b604549bba"
+                ],
+                "maxBitrate": 1248,
+                "avgBitrate": 832,
+                "videoCodec": "hevc",
+                "width": 720,
+                "height": 960,
+                "frameRate": 30,
+                "quality": 7,
+                "kvqScore": {
+                  "FR": -1,
+                  "NR": 2.6129558086395264,
+                  "FRPost": -1,
+                  "NRPost": -1,
+                  "sharpness": 0.2696,
+                  "blur": 0.5808
+                },
+                "qualityType": "ohd",
+                "qualityLabel": "",
+                "featureP2sp": false,
+                "p2spCode": "{\"fRsn\":999,\"fixOpt\":-1,\"schTask\":\"v=0&p=0&s=0&d=0\",\"schCode\":-1,\"schRes\":\"\"}",
+                "hidden": false,
+                "disableAdaptive": false,
+                "defaultSelect": false,
+                "comment": "videoId=77b5a85504af7fa1/tt=sl200Ohd1",
+                "hdrType": 0,
+                "fileSize": 3276075,
+                "agc": false,
+                "mute": false,
+                "oriLoudness": 0,
+                "makeupGain": 0,
+                "realLoudness": -20.98,
+                "realNormalizeGain": 1.259,
+                "normalizeGain": 0,
+                "colorInfo": {}
+              },
+              {
+                "id": 2,
+                "url": "https://aws-br-cdn.kwai.net/upic/2024/10/03/04/BMjAyNDEwMDMwNDQ3MDJfMTUwMDAxMjE0Njg1MTM3XzE1MDEwNzIyMzA5MDAyMF8yXzM=_b_B3b3201758c73c3d0a7b8e313d2b85c34.mp4?tt=b&clientCacheKey=9375589d1dab64b3d4aece8ee0f502df&ss=vpm&tag=1-1788871443-unknown-0-uy3f3oyezj-eb29da96eedac272",
+                "backupUrl": [
+                  "https://ak-br-cdn.kwai.net/upic/2024/10/03/04/BMjAyNDEwMDMwNDQ3MDJfMTUwMDAxMjE0Njg1MTM3XzE1MDEwNzIyMzA5MDAyMF8yXzM=_b_B3b3201758c73c3d0a7b8e313d2b85c34.mp4?tt=b&clientCacheKey=9375589d1dab64b3d4aece8ee0f502df&ss=vpm&tag=1-1788871443-unknown-0-2wuwc1yedj-95fd1aeb5993672b"
+                ],
+                "maxBitrate": 2548,
+                "avgBitrate": 1240,
+                "videoCodec": "avc",
+                "width": 720,
+                "height": 960,
+                "frameRate": 30,
+                "quality": 7,
+                "kvqScore": {
+                  "FR": -1,
+                  "NR": -1,
+                  "FRPost": -1,
+                  "NRPost": -1
+                },
+                "qualityType": "ohd",
+                "qualityLabel": "",
+                "featureP2sp": false,
+                "p2spCode": "{\"fRsn\":999,\"fixOpt\":-1,\"schTask\":\"v=0&p=0&s=0&d=0\",\"schCode\":-1,\"schRes\":\"\"}",
+                "hidden": false,
+                "disableAdaptive": false,
+                "defaultSelect": false,
+                "comment": "videoId=77b5a85504af7fa1/tt=b",
+                "hdrType": 0,
+                "fileSize": 4873030,
+                "agc": false,
+                "mute": false,
+                "oriLoudness": 0,
+                "makeupGain": 0,
+                "realLoudness": -20.98,
+                "realNormalizeGain": 1.259,
+                "normalizeGain": 0
+              }
+            ]
+          }
+        ],
+        "playInfo": {
+          "bizType": 0,
+          "cdnTimeRangeLevel": 0,
+          "strategyBus": "{ }"
+        },
+        "videoFeature": {
+          "blurProbability": -1,
+          "blockyProbability": -1,
+          "avgEntropy": 16.665082023257302,
+          "mosScore": 0.4588215947151184,
+          "contrast": 0.18948145,
+          "underExposed": 0.00086863636,
+          "overExposed": 0.0005016923
+        }
+      },
+      "hasMusicTag": true,
+      "ugcSoundAuthorName": "PARKOUR CITY",
+      "photoFeedAlbum": {
+        "albumId": 96429841300062620,
+        "name": "",
+        "index": 47,
+        "count": 48,
+        "userAlbumCount": 12,
+        "subscribed": false,
+        "canShowFeedback": false,
+        "preLoad": false,
+        "preLoadStrategy": "close",
+        "lastNSecond": 0,
+        "onboardType": 0
+      },
+      "user_sex": "F",
+      "photo_id_str": "5240651225143682227",
+      "comment_request_delay": 0,
+      "requestComment": false,
+      "ext_params": {
+        "mtype": 3,
+        "color": "1F2124",
+        "cw": 720,
+        "ch": 960,
+        "w": 720,
+        "sound": 31303,
+        "h": 960,
+        "interval": 30,
+        "ori_path": "/nfs/nfs_d38/upic/2024/10/03/04/",
+        "video": 31419
+      },
+      "user_head_wear": {
+        "headWearPicUrl": null,
+        "headWearPicUrlV2": [
+          {
+            "cdn": "aws-static.kwai.net",
+            "url": "http://aws-static.kwai.net/udata/music/resource_image_pro_tO3yjXB6Rnk.png"
+          }
+        ],
+        "headWearShape": {},
+        "source": 0
+      },
+      "pymk_ext_params": "{\"slide_photo_id\":5240651225143682227,\"slide_author_id\":\"3xdrh56nkbz8c42\",\"slide_llsid\":4886754355707062361,\"slide_exp_tag\":\"1_a/4886754355707062361_s3\"}",
+      "recoPredict": {
+        "watchTime": 0
+      },
+      "isFriend": false,
+      "verifiedCopy": "",
+      "allowDownload": true,
+      "scrollable": true,
+      "timestamp": 1727902079867,
+      "notFilter": false,
+      "share_info": "",
+      "showFriendsQuickMessageV2": false,
+      "verified": false,
+      "statusPhoto": false,
+      "hasVoteComment": false,
+      "showOneStepForwardButton": 0,
+      "forward_stats_params": {
+        "et": "1_a/4886754355707062361_s3"
+      },
+      "enableShareChatBot": false,
+      "enableAIAssistant": false,
+      "partner": false,
+      "kwai_id": "parkourcity",
+      "comment_guide": "Add the 20th comment",
+      "unlike_count": 0,
+      "time": "2024-10-03 04:47:59",
+      "friendAvatarForwardFlag": false,
+      "view_count": 2999,
+      "cmtGuide": {
+        "defaultText": "Leave your impact on the video",
+        "univText": []
+      }
+    },
+    {
+      "comment_count": 31,
+      "displayTime": "",
+      "main_mv_urls": [
+        {
+          "cdn": "aws-br-cdn.kwai.net",
+          "url": "https://aws-br-cdn.kwai.net/upic/2024/10/03/04/BMjAyNDEwMDMwNDQ0MThfMTUwMDAxMjE0Njg1MTM3XzE1MDEwNzIyMzA3NTczNl8yXzM=_b_Bc46dfcd7f0d20b6b629f42c24258cc99.mp4?tag=1-1788871443-s-0-ivnqozhuwm-1934f35d91bdd290"
+        },
+        {
+          "cdn": "ak-br-cdn.kwai.net",
+          "url": "https://ak-br-cdn.kwai.net/upic/2024/10/03/04/BMjAyNDEwMDMwNDQ0MThfMTUwMDAxMjE0Njg1MTM3XzE1MDEwNzIyMzA3NTczNl8yXzM=_b_Bc46dfcd7f0d20b6b629f42c24258cc99.mp4?tag=1-1788871443-s-1-fv7svnvnso-9951321c96745f5d"
+        }
+      ],
+      "reco_reason": "s3",
+      "show_repost_entrance": true,
+      "hetuTag": {
+        "photoTag": "",
+        "photoSecondTag": "",
+        "photoTagText": "",
+        "photoSecondTagText": ""
+      },
+      "forward_count": 27,
+      "profile_user_top": false,
+      "caption": "GOSTOU? SEGUE PARA MAIS V&Iacute;DEOS! 🥰👀 #parkour #motovlog #TopickerNoKwai #viral",
+      "exp_tag": "1_a/4886754355707062361_s3",
+      "master_photo": false,
+      "coverCaption": "GOSTOU? SEGUE PARA MAIS V&Iacute;DEOS! 🥰👀",
+      "type": 1,
+      "hasHotComment": false,
+      "liked": 0,
+      "tag_hash_type": 1,
+      "verifiedInfo": {
+        "iconUrl": "",
+        "desc": ""
+      },
+      "shareView": {
+        "desc": "Share",
+        "share_reason_type": "",
+        "share_panel_tip_i18n_key": "",
+        "share_panel_tip_i18n_value": "",
+        "high_level_share_reason_i18n_key": "",
+        "high_level_share_reason_i18n_value": "",
+        "high_level_auto_share_reason_i18n_key": "",
+        "high_level_auto_share_reason_i18n_value": "",
+        "share_reason_extra_info": "",
+        "disable_guide": true,
+        "show_share_server_link_btn": false
+      },
+      "score": 0,
+      "music": {
+        "id": 11149188508,
+        "type": 10,
+        "name": "",
+        "url": "https://ak-br-pic.kwai.net/bs2/ost/MTUwMTA3MjIzMDc1NzM2XzE1MDAwMTIxNDY4NTEzNw.m4a",
+        "artist": "PARKOUR CITY",
+        "avatarUrl": "https://aws-br-pic.kwai.net/bs2/overseaHead/20240312004827_BMTUwMDAxMjE0Njg1MTM3_tw.webp",
+        "uploadTime": 1727902035170,
+        "genreId": 0,
+        "user": {
+          "level": 0,
+          "followStatus": 0,
+          "headurl": "https://aws-br-pic.kwai.net/bs2/overseaHead/20240312004827_BMTUwMDAxMjE0Njg1MTM3_sw.webp",
+          "headurls": [
+            {
+              "cdn": "aws-br-pic.kwai.net",
+              "url": "https://aws-br-pic.kwai.net/bs2/overseaHead/20240312004827_BMTUwMDAxMjE0Njg1MTM3_sw.webp"
+            },
+            {
+              "cdn": "ak-br-pic.kwai.net",
+              "url": "https://ak-br-pic.kwai.net/bs2/overseaHead/20240312004827_BMTUwMDAxMjE0Njg1MTM3_sw.webp"
+            }
+          ],
+          "verifiedNum": 0,
+          "verifiedCopy": null,
+          "eid": "3xdrh56nkbz8c42",
+          "user_id": 150001214685137,
+          "user_name": "PARKOUR CITY",
+          "user_sex": "F",
+          "fans_num": 0,
+          "pymk_ext_params": null
+        },
+        "audioType": 1,
+        "duration": 62,
+        "audioUrls": [
+          {
+            "cdn": "ak-br-pic.kwai.net",
+            "url": "https://ak-br-pic.kwai.net/bs2/ost/MTUwMTA3MjIzMDc1NzM2XzE1MDAwMTIxNDY4NTEzNw.m4a"
+          },
+          {
+            "cdn": "aws-br-pic.kwai.net",
+            "url": "https://aws-br-pic.kwai.net/bs2/ost/MTUwMTA3MjIzMDc1NzM2XzE1MDAwMTIxNDY4NTEzNw.m4a"
+          }
+        ],
+        "musicFileRawKey": "MTUwMTA3MjIzMDc1NzM2XzE1MDAwMTIxNDY4NTEzNw.m4a",
+        "avatarUrls": [
+          {
+            "cdn": "aws-br-pic.kwai.net",
+            "url": "https://aws-br-pic.kwai.net/bs2/overseaHead/20240312004827_BMTUwMDAxMjE0Njg1MTM3_tw.webp"
+          },
+          {
+            "cdn": "ak-br-pic.kwai.net",
+            "url": "https://ak-br-pic.kwai.net/bs2/overseaHead/20240312004827_BMTUwMDAxMjE0Njg1MTM3_tw.webp"
+          }
+        ],
+        "musicExtraView": {
+          "channel": 0
+        },
+        "photoCount": 3,
+        "playListInfo": null,
+        "musicRankEntrance": null,
+        "originalMusicInfo": null
+      },
+      "ugcSoundPhotoId": 5230518122703508000,
+      "offlineTeachPhoto": false,
+      "showFriendsQuickMessage": false,
+      "enableQuickPrivateMsg": false,
+      "hated": 0,
+      "user_text": "⭐ GOSTA DE ADRENALINA? É O PERFIL CERTO.\n📌 VÍDEOS TODOS OS DIAS!",
+      "user_living": false,
+      "commentAISearch": false,
+      "text_location": {
+        "left_ratio": 0.04166,
+        "top_ratio": 0.17395,
+        "width_ratio": 0.91111,
+        "height_ratio": 0.55937
+      },
+      "like_count": 118,
+      "level": 0,
+      "main_mv_urls_rate": [
+        {
+          "lower_bound": 0,
+          "upper_bound": 384,
+          "rate": 320,
+          "level": "LOW_265",
+          "quality": 3,
+          "maxRate": 422,
+          "width": 464,
+          "height": 618,
+          "videoSize": 2518441,
+          "prefetchMsWifi": 0,
+          "prefetchMs4G": 0,
+          "prefetchMsOther": 0,
+          "urls": [
+            {
+              "cdn": "aws-br-cdn.kwai.net",
+              "url": "https://aws-br-cdn.kwai.net/upic/2024/10/03/04/BMjAyNDEwMDMwNDQ0MThfMTUwMDAxMjE0Njg1MTM3XzE1MDEwNzIyMzA3NTczNl8yXzM=_osd24_B9d55d9169e44d974b9eeabfeff82a779.mp4?tag=1-1788871443-s-0-ivnqozhuwm-1934f35d91bdd290&tt=osd24"
+            },
+            {
+              "cdn": "ak-br-cdn.kwai.net",
+              "url": "https://ak-br-cdn.kwai.net/upic/2024/10/03/04/BMjAyNDEwMDMwNDQ0MThfMTUwMDAxMjE0Njg1MTM3XzE1MDEwNzIyMzA3NTczNl8yXzM=_osd24_B9d55d9169e44d974b9eeabfeff82a779.mp4?tag=1-1788871443-s-1-fv7svnvnso-9951321c96745f5d&tt=osd24"
+            }
+          ]
+        },
+        {
+          "lower_bound": 385,
+          "upper_bound": 680,
+          "rate": 567,
+          "level": "MIDDLE_265",
+          "quality": 5,
+          "maxRate": 782,
+          "width": 540,
+          "height": 720,
+          "videoSize": 4458752,
+          "prefetchMsWifi": 0,
+          "prefetchMs4G": 0,
+          "prefetchMsOther": 0,
+          "urls": [
+            {
+              "cdn": "aws-br-cdn.kwai.net",
+              "url": "https://aws-br-cdn.kwai.net/upic/2024/10/03/04/BMjAyNDEwMDMwNDQ0MThfMTUwMDAxMjE0Njg1MTM3XzE1MDEwNzIyMzA3NTczNl8yXzM=_omd27_Bf3bceb8ee1600bae7cc8059eff34aeb6.mp4?tag=1-1788871443-s-0-ivnqozhuwm-1934f35d91bdd290&tt=omd27"
+            },
+            {
+              "cdn": "ak-br-cdn.kwai.net",
+              "url": "https://ak-br-cdn.kwai.net/upic/2024/10/03/04/BMjAyNDEwMDMwNDQ0MThfMTUwMDAxMjE0Njg1MTM3XzE1MDEwNzIyMzA3NTczNl8yXzM=_omd27_Bf3bceb8ee1600bae7cc8059eff34aeb6.mp4?tag=1-1788871443-s-1-fv7svnvnso-9951321c96745f5d&tt=omd27"
+            }
+          ]
+        },
+        {
+          "lower_bound": 681,
+          "upper_bound": 2147483647,
+          "rate": 972,
+          "level": "HIGH_265",
+          "quality": 6,
+          "maxRate": 1696,
+          "width": 720,
+          "height": 960,
+          "videoSize": 7634374,
+          "prefetchMsWifi": 0,
+          "prefetchMs4G": 0,
+          "prefetchMsOther": 0,
+          "urls": [
+            {
+              "cdn": "aws-br-cdn.kwai.net",
+              "url": "https://aws-br-cdn.kwai.net/upic/2024/10/03/04/BMjAyNDEwMDMwNDQ0MThfMTUwMDAxMjE0Njg1MTM3XzE1MDEwNzIyMzA3NTczNl8yXzM=_ohd72_B9ee09d0f93d670d1c80663a9d1ff66a3.mp4?tag=1-1788871443-s-0-ivnqozhuwm-1934f35d91bdd290&tt=ohd72"
+            },
+            {
+              "cdn": "ak-br-cdn.kwai.net",
+              "url": "https://ak-br-cdn.kwai.net/upic/2024/10/03/04/BMjAyNDEwMDMwNDQ0MThfMTUwMDAxMjE0Njg1MTM3XzE1MDEwNzIyMzA3NTczNl8yXzM=_ohd72_B9ee09d0f93d670d1c80663a9d1ff66a3.mp4?tag=1-1788871443-s-1-fv7svnvnso-9951321c96745f5d&tt=ohd72"
+            }
+          ]
+        }
+      ],
+      "isFans": false,
+      "partnerUser": true,
+      "photoExtInfo": {
+        "poll": "",
+        "pollNew": null,
+        "isMvPhoto": false,
+        "mvTemplateId": null,
+        "cutInfo": "",
+        "mvTemplateName": null,
+        "mvCover": null,
+        "shootGuide": 0,
+        "androidMinVer": null,
+        "androidMaxVer": null,
+        "attribution": {},
+        "mvIcon": null,
+        "liveAppointId": "",
+        "trafficBoostCount": "",
+        "aiTitle": ""
+      },
+      "hasUgcSound": true,
+      "tags": [],
+      "offline_watchlist": {
+        "enable": false
+      },
+      "enable_repost": true,
+      "us_c": 0,
+      "favoriteView": {
+        "favorCount": 0,
+        "favor": false
+      },
+      "user_id": 150001214685137,
+      "us_d": 1,
+      "rewardInfo": {
+        "showIcon": false,
+        "praiseAble": false,
+        "canShowBar": false,
+        "text": null
+      },
+      "play_speed": {
+        "enable": true
+      },
+      "religionPhotoType": 0,
+      "following": 0,
+      "cover_thumbnail_urls": [
+        {
+          "cdn": "p15-kimg.kwai.net",
+          "url": "https://p15-kimg.kwai.net/kimg/EKzM1y8qmQEKAnMzEg1waG90by1vdmVyc2VhGoMBdXBpYy8yMDI0LzEwLzAzLzA0L0JNakF5TkRFd01ETXdORFEwTVRoZk1UVXdNREF4TWpFME5qZzFNVE0zWHpFMU1ERXdOekl5TXpBM05UY3pObDh5WHpNPV9vdXVfQjdiNjcxY2Y1NDk2MGMwZmFlZGEyN2U4MTBmNmU2NDc4LndlYnA.webp"
+        },
+        {
+          "cdn": "p16-kimg.kwai.net",
+          "url": "https://p16-kimg.kwai.net/kimg/EKzM1y8qmQEKAnMzEg1waG90by1vdmVyc2VhGoMBdXBpYy8yMDI0LzEwLzAzLzA0L0JNakF5TkRFd01ETXdORFEwTVRoZk1UVXdNREF4TWpFME5qZzFNVE0zWHpFMU1ERXdOekl5TXpBM05UY3pObDh5WHpNPV9vdXVfQjdiNjcxY2Y1NDk2MGMwZmFlZGEyN2U4MTBmNmU2NDc4LndlYnA.webp"
+        }
+      ],
+      "cover_first_frame_urls": [
+        {
+          "cdn": "aws-br-pic.kwai.net",
+          "url": "https://aws-br-pic.kwai.net/upic/2024/10/03/04/BMjAyNDEwMDMwNDQ0MThfMTUwMDAxMjE0Njg1MTM3XzE1MDEwNzIyMzA3NTczNl8yXzM=_offn_B02a0381ae4e6986242b68b2882b16ad9.webp?tag=1-1788871443-s-0-r4yvy1jek6-ed859ff95d66b040"
+        },
+        {
+          "cdn": "ak-br-pic.kwai.net",
+          "url": "https://ak-br-pic.kwai.net/upic/2024/10/03/04/BMjAyNDEwMDMwNDQ0MThfMTUwMDAxMjE0Njg1MTM3XzE1MDEwNzIyMzA3NTczNl8yXzM=_offn_B02a0381ae4e6986242b68b2882b16ad9.webp?tag=1-1788871443-s-1-f4izuz4u0v-a4229d9165e68d01"
+        }
+      ],
+      "pollInfo": null,
+      "verifiedNum": 0,
+      "hasAmazingComment": false,
+      "photo_id": 5230518122703508000,
+      "photo_status": 0,
+      "user_name": "PARKOUR CITY",
+      "sds_location": {
+        "video_width": 720,
+        "video_height": 960,
+        "left_x": 0,
+        "top_y": 143,
+        "right_x": 720,
+        "bottom_y": 330,
+        "ratio_wh": 3.8502674,
+        "cut_prob": 0
+      },
+      "headurls": [
+        {
+          "cdn": "aws-br-pic.kwai.net",
+          "url": "https://aws-br-pic.kwai.net/bs2/overseaHead/20240312004827_BMTUwMDAxMjE0Njg1MTM3_tw.webp"
+        },
+        {
+          "cdn": "ak-br-pic.kwai.net",
+          "url": "https://ak-br-pic.kwai.net/bs2/overseaHead/20240312004827_BMTUwMDAxMjE0Njg1MTM3_tw.webp"
+        }
+      ],
+      "marketingPhoto": false,
+      "transcode_manifest_info": {
+        "version": "2.0.0",
+        "businessType": 2,
+        "mediaType": 2,
+        "videoId": "87b22fb5e6833268",
+        "hideAuto": false,
+        "manualDefaultSelect": false,
+        "stereoType": 0,
+        "adaptationSet": [
+          {
+            "id": 1,
+            "duration": 62834,
+            "representation": [
+              {
+                "id": 1,
+                "url": "https://ak-br-cdn.kwai.net/upic/2024/10/03/04/BMjAyNDEwMDMwNDQ0MThfMTUwMDAxMjE0Njg1MTM3XzE1MDEwNzIyMzA3NTczNl8yXzM=_sl200Ohd1_B361a421df78c3e89bff1fce403541d23.mp4?tt=sl200Ohd1&clientCacheKey=89324c21aa39bc5a336079afd95a1f3f&ss=vpm&tag=1-1788871443-unknown-0-z3w8evjuk7-1cd3c692c7ba644e",
+                "backupUrl": [
+                  "https://aws-br-cdn.kwai.net/upic/2024/10/03/04/BMjAyNDEwMDMwNDQ0MThfMTUwMDAxMjE0Njg1MTM3XzE1MDEwNzIyMzA3NTczNl8yXzM=_sl200Ohd1_B361a421df78c3e89bff1fce403541d23.mp4?tt=sl200Ohd1&clientCacheKey=89324c21aa39bc5a336079afd95a1f3f&ss=vpm&tag=1-1788871443-unknown-0-xhlnwqbakk-da8066f62c605533"
+                ],
+                "maxBitrate": 1206,
+                "avgBitrate": 804,
+                "videoCodec": "hevc",
+                "width": 720,
+                "height": 960,
+                "frameRate": 30,
+                "quality": 7,
+                "kvqScore": {
+                  "FR": -1,
+                  "NR": 2.6536457538604736,
+                  "FRPost": -1,
+                  "NRPost": -1,
+                  "sharpness": 0.1795,
+                  "blur": 0.3694
+                },
+                "qualityType": "ohd",
+                "qualityLabel": "",
+                "featureP2sp": false,
+                "p2spCode": "{\"fRsn\":999,\"fixOpt\":-1,\"schTask\":\"v=0&p=0&s=0&d=0\",\"schCode\":-1,\"schRes\":\"\"}",
+                "hidden": false,
+                "disableAdaptive": false,
+                "defaultSelect": false,
+                "comment": "videoId=87b22fb5e6833268/tt=sl200Ohd1",
+                "hdrType": 0,
+                "fileSize": 6316407,
+                "agc": false,
+                "mute": false,
+                "oriLoudness": 0,
+                "makeupGain": 0,
+                "realLoudness": -18.938,
+                "realNormalizeGain": 1,
+                "normalizeGain": 0,
+                "colorInfo": {}
+              },
+              {
+                "id": 2,
+                "url": "https://ak-br-cdn.kwai.net/upic/2024/10/03/04/BMjAyNDEwMDMwNDQ0MThfMTUwMDAxMjE0Njg1MTM3XzE1MDEwNzIyMzA3NTczNl8yXzM=_b_Bc46dfcd7f0d20b6b629f42c24258cc99.mp4?tt=b&clientCacheKey=525d6c5932e218ccd9d98d2dd2610b5a&ss=vpm&tag=1-1788871443-unknown-0-m1xzllk6ss-1be015e5fabcf20b",
+                "backupUrl": [
+                  "https://aws-br-cdn.kwai.net/upic/2024/10/03/04/BMjAyNDEwMDMwNDQ0MThfMTUwMDAxMjE0Njg1MTM3XzE1MDEwNzIyMzA3NTczNl8yXzM=_b_Bc46dfcd7f0d20b6b629f42c24258cc99.mp4?tt=b&clientCacheKey=525d6c5932e218ccd9d98d2dd2610b5a&ss=vpm&tag=1-1788871443-unknown-0-inagwaoxxp-113f1eab1f2cd1a0"
+                ],
+                "maxBitrate": 2548,
+                "avgBitrate": 1183,
+                "videoCodec": "avc",
+                "width": 720,
+                "height": 960,
+                "frameRate": 30,
+                "quality": 7,
+                "kvqScore": {
+                  "FR": -1,
+                  "NR": 2.6627604961395264,
+                  "FRPost": -1,
+                  "NRPost": -1,
+                  "sharpness": 0.1215,
+                  "blur": 0.4104
+                },
+                "qualityType": "ohd",
+                "qualityLabel": "",
+                "featureP2sp": false,
+                "p2spCode": "{\"fRsn\":999,\"fixOpt\":-1,\"schTask\":\"v=0&p=0&s=0&d=0\",\"schCode\":-1,\"schRes\":\"\"}",
+                "hidden": false,
+                "disableAdaptive": false,
+                "defaultSelect": false,
+                "comment": "videoId=87b22fb5e6833268/tt=b",
+                "hdrType": 0,
+                "fileSize": 9286578,
+                "agc": false,
+                "mute": false,
+                "oriLoudness": 0,
+                "makeupGain": 0,
+                "realLoudness": -18.938,
+                "realNormalizeGain": 1,
+                "normalizeGain": 0,
+                "colorInfo": {}
+              }
+            ]
+          }
+        ],
+        "playInfo": {
+          "bizType": 0,
+          "cdnTimeRangeLevel": 0,
+          "strategyBus": "{ }"
+        },
+        "videoFeature": {
+          "blurProbability": -1,
+          "blockyProbability": -1,
+          "avgEntropy": 13.841103326706659,
+          "mosScore": 0.4762369990348816,
+          "contrast": 0.5989746,
+          "underExposed": 0.007173547,
+          "overExposed": 0.000005963445
+        }
+      },
+      "hasMusicTag": true,
+      "ugcSoundAuthorName": "PARKOUR CITY",
+      "photoFeedAlbum": {
+        "albumId": 96429841300062620,
+        "name": "",
+        "index": 46,
+        "count": 48,
+        "userAlbumCount": 12,
+        "subscribed": false,
+        "canShowFeedback": false,
+        "preLoad": false,
+        "preLoadStrategy": "close",
+        "lastNSecond": 0,
+        "onboardType": 0
+      },
+      "user_sex": "F",
+      "photo_id_str": "5230518122703508277",
+      "comment_request_delay": 0,
+      "requestComment": false,
+      "ext_params": {
+        "mtype": 3,
+        "color": "2C271D",
+        "cw": 720,
+        "ch": 960,
+        "w": 720,
+        "sound": 62671,
+        "h": 960,
+        "interval": 30,
+        "ori_path": "/nfs/nfs_d38/upic/2024/10/03/04/",
+        "video": 62787
+      },
+      "user_head_wear": {
+        "headWearPicUrl": null,
+        "headWearPicUrlV2": [
+          {
+            "cdn": "aws-static.kwai.net",
+            "url": "http://aws-static.kwai.net/udata/music/resource_image_pro_tO3yjXB6Rnk.png"
+          }
+        ],
+        "headWearShape": {},
+        "source": 0
+      },
+      "pymk_ext_params": "{\"slide_photo_id\":5230518122703508277,\"slide_author_id\":\"3xdrh56nkbz8c42\",\"slide_llsid\":4886754355707062361,\"slide_exp_tag\":\"1_a/4886754355707062361_s3\"}",
+      "recoPredict": {
+        "watchTime": 0
+      },
+      "isFriend": false,
+      "verifiedCopy": "",
+      "allowDownload": true,
+      "scrollable": true,
+      "timestamp": 1727901993492,
+      "notFilter": false,
+      "share_info": "",
+      "showFriendsQuickMessageV2": false,
+      "verified": false,
+      "statusPhoto": false,
+      "hasVoteComment": false,
+      "showOneStepForwardButton": 0,
+      "forward_stats_params": {
+        "et": "1_a/4886754355707062361_s3"
+      },
+      "enableShareChatBot": false,
+      "enableAIAssistant": false,
+      "partner": false,
+      "kwai_id": "parkourcity",
+      "comment_guide": "Add the 32th comment",
+      "unlike_count": 0,
+      "time": "2024-10-03 04:46:33",
+      "friendAvatarForwardFlag": false,
+      "view_count": 2019,
+      "cmtGuide": {
+        "defaultText": "We‘re missing your brilliant idea here",
+        "univText": []
+      }
+    }
+  ],
+  "cursor": "1727287362050"
+}
