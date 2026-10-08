@@ -605,7 +605,9 @@ def test_comments_falha_em_sublista_interrompe_sem_perder_as_raizes() -> None:
     assert all(isinstance(item, ExpandedComment) for item in exc.value.partial)
 
 
-def test_comments_falha_no_meio_da_sublista_preserva_as_respostas_ja_lidas() -> None:
+def test_comments_falha_no_meio_da_sublista_preserva_as_respostas_ja_lidas(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     class _FalhaNaSegundaPaginaDaSublista(FakeCommentApi):
         def fetch_sub_page(
             self,
@@ -642,6 +644,57 @@ def test_comments_falha_no_meio_da_sublista_preserva_as_respostas_ja_lidas() -> 
         CollectComments(api).execute(POST_URL, with_replies=True)
 
     assert _ids(exc.value.partial) == ["r1", "s1", "r2"]
+    assert "declaradas=5, coletadas=1" in caplog.text
+
+
+@pytest.mark.parametrize("declared", [1, 3])
+def test_reply_count_difference_warns_without_losing_other_roots(
+    declared: int,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    api = FakeCommentApi(
+        [
+            CommentPage(
+                [_root(_comment("r1", STAMP), declared), _root(_comment("r2", STAMP), 1)],
+                Cursor("no_more"),
+            )
+        ],
+        {
+            "r1": [
+                SubCommentPage([_sub("s1", STAMP)], Cursor("NEXT")),
+                SubCommentPage([_sub("s1", STAMP), _sub("s2", STAMP)], Cursor("no_more")),
+            ],
+            "r2": [SubCommentPage([_sub("s3", STAMP)], Cursor("no_more"))],
+        },
+    )
+    comments = CollectComments(api).execute(POST_URL, with_replies=True)
+    assert [comment.id for comment in comments] == ["r1", "s1", "s2", "r2", "s3"]
+    assert f"declaradas={declared}, coletadas=2" in caplog.text
+    assert "causa não determinada" in caplog.text
+
+
+@pytest.mark.parametrize("declared", [None, 0, 1])
+def test_unknown_or_matching_reply_count_does_not_warn(
+    declared: int | None,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    api = FakeCommentApi(
+        [CommentPage([_root(_comment("r1", STAMP), declared)], Cursor("no_more"))],
+        {"r1": [SubCommentPage([_sub("s1", STAMP)], Cursor("no_more"))]},
+    )
+    CollectComments(api).execute(POST_URL, with_replies=True)
+    assert "declaradas=" not in caplog.text
+
+
+def test_unqueryable_root_warns_about_uncollected_declared_replies(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    api = FakeCommentApi(
+        [CommentPage([_root(_orphan_comment("a1", "sem id"), 5)], Cursor("no_more"))]
+    )
+    CollectComments(api).execute(POST_URL, with_replies=True)
+    assert "declaradas=5, coletadas=0" in caplog.text
+    assert api.sub_calls == []
 
 
 def test_comments_cursor_de_raizes_repetido_interrompe_com_o_parcial() -> None:

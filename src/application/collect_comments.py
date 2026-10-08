@@ -31,6 +31,18 @@ def _expanded_root(root: RootComment) -> ExpandedComment:
     )
 
 
+def _warn_reply_count(root: RootComment, collected: int) -> None:
+    """Compara o total declarado com o efetivamente entregue, sem inferir a causa."""
+    declared = root.respostas_declaradas
+    if declared is not None and declared >= 0 and declared != collected:
+        logger.warning(
+            "respostas da raiz %s: declaradas=%d, coletadas=%d; causa não determinada",
+            root.comentario.id or "sem id",
+            declared,
+            collected,
+        )
+
+
 class CollectComments:
     """Coleta os comentários de uma postagem a partir do link."""
 
@@ -140,7 +152,9 @@ class CollectComments:
             seen.add(comment_dedup_key(comment.id, comment.autor.id, comment.texto))
             expanded.append(_expanded_root(root))
             if comment.id is None or not root.respostas_declaradas:
+                _warn_reply_count(root, 0)
                 continue
+            start = len(expanded)
             try:
                 expanded.extend(
                     self._collect_replies(
@@ -152,9 +166,11 @@ class CollectComments:
                     )
                 )
             except KwaiCollectorError as exc:
+                _warn_reply_count(root, len(expanded) - start)
                 # as raízes que ainda não tiveram as respostas buscadas não se perdem
                 expanded.extend(_expanded_root(pending) for pending in roots[index + 1 :])
                 reraise_with_partial(exc, expanded)
+            _warn_reply_count(root, len(expanded) - start)
         return expanded
 
     def _collect_replies(
