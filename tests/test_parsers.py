@@ -1,4 +1,4 @@
-"""Testes de parsing (feed -> Postagem, comentários -> Comentario)."""
+"""Testes de parsing (feed -> Post, comentários -> Comment)."""
 
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ import pytest
 
 from src.infrastructure.exceptions import UnexpectedResponseError
 from src.infrastructure.mapping import (
+    _normalize_optional_string,
     build_post_url,
     parse_comment,
     parse_feed,
@@ -16,6 +17,16 @@ from src.infrastructure.mapping import (
 from src.shared.utils.timestamps import iso_from_timestamp_ms
 
 FIXED = "2026-09-08T00:00:00Z"
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [(None, None), ("", None), ("   ", None), (0, "0"), (123, "123"), (" x ", "x")],
+)
+def test_normalize_optional_string_preserves_conversion(
+    value: object, expected: str | None
+) -> None:
+    assert _normalize_optional_string(value) == expected
 
 
 def test_iso_from_timestamp_ms() -> None:

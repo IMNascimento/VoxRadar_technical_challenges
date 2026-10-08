@@ -2,22 +2,33 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+from itertools import chain
+
 from ..domain.exceptions import KwaiCollectorError
 from ..domain.identity import comment_dedup_key, extract_photo_id
-from ..domain.value_objects.cursor import Cursor
 from ..domain.value_objects.identifiers import CommentId, PhotoId
 from ..domain.value_objects.iso_timestamp import IsoTimestamp
 from ..shared.logging_config import COLLECTOR_LOGGER_NAME, get_logger
 from ..shared.utils.timestamps import now_iso
-from .models import Comentario, ComentarioExpandido
+from .exceptions import RepeatedCursorError, reraise_with_partial
+from .models import Comment, ExpandedComment
+from .pagination import iter_pages
 from .ports import CommentApiPort, RootComment
 
 logger = get_logger(COLLECTOR_LOGGER_NAME)
 
-# Itens por página pedidos ao gateway (20 é o default; 50 e 100 são respeitados).
+# Itens por página pedidos ao gateway (sem ``count`` ele devolve 5; 20, 50 e 100 são respeitados).
 COMMENTS_PAGE_SIZE = 50
 # Itens por página da sublista de respostas (o gateway respeita até 100).
 SUBLIST_PAGE_SIZE = 100
+
+
+def _expanded_root(root: RootComment) -> ExpandedComment:
+    """Raiz no formato expandido, com o total de respostas que a API declara."""
+    return ExpandedComment(
+        **root.comentario.model_dump(), respostas_total=root.respostas_declaradas
+    )
 
 
 class CollectComments:
@@ -33,7 +44,7 @@ class CollectComments:
 
     def execute(
         self, post_url: str, *, limit: int | None = None, with_replies: bool = False
-    ) -> list[Comentario]:
+    ) -> list[Comment]:
         """Percorre as páginas do ``pcursor`` e deduplica os comentários.
 
         O ``limit`` conta **itens crus de raiz** devolvidos pela API (antes do
@@ -44,7 +55,8 @@ class CollectComments:
         plana: a resposta aponta para a raiz via ``parent_id`` e a raiz traz
         ``respostas_total`` com o total que a API **declara** (que pode ser maior
         que o número de respostas efetivamente coletadas). Sem a opção, a saída é
-        idêntica à coleta de raízes.
+        idêntica à coleta de raízes. Uma raiz cuja sublista entra em laço de
+        cursor é registrada no log e as demais seguem.
 
         Args:
             post_url: link da postagem (``.../@perfil/video/<id>``).
@@ -57,7 +69,9 @@ class CollectComments:
 
         Raises:
             InvalidInputError: se a URL não tiver um id de postagem válido.
-            KwaiCollectorError: se a API repetir o cursor da sublista de uma raiz.
+            CollectionInterruptedError: se a coleta falhar depois de já ter
+                comentários; o que foi coletado vai em ``partial``.
+            KwaiCollectorError: se a falha vier antes do primeiro comentário.
         """
         photo_id = extract_photo_id(post_url)
         logger.info("coletando comentários da postagem %s", photo_id.value)
@@ -65,7 +79,7 @@ class CollectComments:
         roots = self._collect_roots(
             photo_id, post_url=post_url, collected_at=collected_at, limit=limit
         )
-        comments: list[Comentario] = [root.comentario for root in roots]
+        comments: list[Comment] = [root.comentario for root in roots]
         if with_replies:
             comments = self._expand_replies(
                 photo_id, roots, post_url=post_url, collected_at=collected_at
@@ -78,33 +92,38 @@ class CollectComments:
     ) -> list[RootComment]:
         roots: list[RootComment] = []
         seen: set[str] = set()
-        seen_cursors: set[str] = set()
-        cursor = Cursor("")
-        fetched = 0
-        while True:
-            page = self._api.fetch_page(
-                photo_id,
-                cursor=cursor,
-                count=COMMENTS_PAGE_SIZE,
-                postagem_url=post_url,
-                collected_at=collected_at,
-            )
-            for root in page.comments:
-                fetched += 1
+        try:
+            for root in self._iter_raw_roots(
+                photo_id, post_url=post_url, collected_at=collected_at, limit=limit
+            ):
                 comment = root.comentario
                 key = comment_dedup_key(comment.id, comment.autor.id, comment.texto)
                 if key not in seen:
                     seen.add(key)
                     roots.append(root)
-                if limit is not None and fetched >= limit:
-                    return roots
-            next_cursor = page.next_cursor
-            if not page.comments or next_cursor.is_end():
-                return roots
-            if next_cursor.value in seen_cursors:
-                raise KwaiCollectorError(f"cursor de raízes repetido: {next_cursor.value!r}")
-            seen_cursors.add(next_cursor.value)
-            cursor = next_cursor
+        except KwaiCollectorError as exc:
+            reraise_with_partial(exc, [root.comentario for root in roots])
+        return roots
+
+    def _iter_raw_roots(
+        self, photo_id: PhotoId, *, post_url: str, collected_at: IsoTimestamp, limit: int | None
+    ) -> Iterator[RootComment]:
+        """Itens crus de raiz, na ordem da API; para ao atingir o ``limit`` cru."""
+        pages = iter_pages(
+            lambda cursor: self._api.fetch_page(
+                photo_id,
+                cursor=cursor,
+                count=COMMENTS_PAGE_SIZE,
+                postagem_url=post_url,
+                collected_at=collected_at,
+            ),
+            is_empty=lambda page: not page.comments,
+            source="raízes",
+        )
+        for fetched, root in enumerate(chain.from_iterable(page.comments for page in pages), 1):
+            yield root
+            if limit is not None and fetched >= limit:
+                return
 
     def _expand_replies(
         self,
@@ -113,30 +132,29 @@ class CollectComments:
         *,
         post_url: str,
         collected_at: IsoTimestamp,
-    ) -> list[Comentario]:
-        expanded: list[Comentario] = []
+    ) -> list[Comment]:
+        expanded: list[Comment] = []
         seen: set[str] = set()
-        for root in roots:
+        for index, root in enumerate(roots):
             comment = root.comentario
-            key = comment_dedup_key(comment.id, comment.autor.id, comment.texto)
-            seen.add(key)
-            expanded.append(
-                ComentarioExpandido(
-                    **comment.model_dump(),
-                    respostas_total=root.respostas_declaradas,
-                )
-            )
+            seen.add(comment_dedup_key(comment.id, comment.autor.id, comment.texto))
+            expanded.append(_expanded_root(root))
             if comment.id is None or not root.respostas_declaradas:
                 continue
-            expanded.extend(
-                self._collect_replies(
-                    photo_id,
-                    comment.id,
-                    post_url=post_url,
-                    collected_at=collected_at,
-                    seen=seen,
+            try:
+                expanded.extend(
+                    self._collect_replies(
+                        photo_id,
+                        comment.id,
+                        post_url=post_url,
+                        collected_at=collected_at,
+                        seen=seen,
+                    )
                 )
-            )
+            except KwaiCollectorError as exc:
+                # as raízes que ainda não tiveram as respostas buscadas não se perdem
+                expanded.extend(_expanded_root(pending) for pending in roots[index + 1 :])
+                reraise_with_partial(exc, expanded)
         return expanded
 
     def _collect_replies(
@@ -147,39 +165,32 @@ class CollectComments:
         post_url: str,
         collected_at: IsoTimestamp,
         seen: set[str],
-    ) -> list[Comentario]:
-        replies: list[Comentario] = []
-        seen_cursors: set[str] = set()
-        cursor = Cursor("")
-        while True:
-            page = self._api.fetch_sub_page(
+    ) -> Iterator[Comment]:
+        """Respostas de uma raiz, uma a uma (o que já saiu não se perde numa falha)."""
+        pages = iter_pages(
+            lambda cursor: self._api.fetch_sub_page(
                 photo_id,
                 root_comment_id=CommentId(root_id),
                 cursor=cursor,
                 count=SUBLIST_PAGE_SIZE,
                 postagem_url=post_url,
                 collected_at=collected_at,
-            )
-            for sub in page.comments:
+            ),
+            is_empty=lambda page: not page.comments,
+            source=f"sublista da raiz {root_id}",
+        )
+        try:
+            for sub in chain.from_iterable(page.comments for page in pages):
                 comment = sub.comentario
                 key = comment_dedup_key(comment.id, comment.autor.id, comment.texto)
                 if key in seen:
                     continue
                 seen.add(key)
-                replies.append(
-                    ComentarioExpandido(
-                        **comment.model_dump(),
-                        parent_id=root_id,
-                        reply_to_id=sub.reply_to_id,
-                        reply_to_usuario=sub.reply_to_usuario,
-                    )
+                yield ExpandedComment(
+                    **comment.model_dump(),
+                    parent_id=root_id,
+                    reply_to_id=sub.reply_to_id,
+                    reply_to_usuario=sub.reply_to_usuario,
                 )
-            next_cursor = page.next_cursor
-            if not page.comments or next_cursor.is_end():
-                return replies
-            if next_cursor.value in seen_cursors:
-                raise KwaiCollectorError(
-                    f"cursor de sublista repetido na raiz {root_id}: {next_cursor.value!r}"
-                )
-            seen_cursors.add(next_cursor.value)
-            cursor = next_cursor
+        except RepeatedCursorError as exc:
+            logger.warning("respostas da raiz %s truncadas: %s", root_id, exc)

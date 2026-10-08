@@ -9,7 +9,7 @@ from __future__ import annotations
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class AutorPostagem(BaseModel):
+class PostAuthor(BaseModel):
     """Autor de uma postagem."""
 
     model_config = ConfigDict(extra="forbid")
@@ -19,7 +19,7 @@ class AutorPostagem(BaseModel):
     url_perfil: str | None = None
 
 
-class Engajamento(BaseModel):
+class Engagement(BaseModel):
     """Métricas de engajamento de uma postagem.
 
     Campos ausentes ficam ``None`` (desconhecido), conforme o schema: só usamos
@@ -34,7 +34,7 @@ class Engajamento(BaseModel):
     visualizacoes: int | None = None
 
 
-class Postagem(BaseModel):
+class Post(BaseModel):
     """Uma postagem do Kwai. Campos obrigatórios: ``url``, ``engajamento``,
     ``coletado_em``."""
 
@@ -42,14 +42,14 @@ class Postagem(BaseModel):
 
     id: str | None = None
     url: str
-    autor: AutorPostagem = Field(default_factory=AutorPostagem)
+    autor: PostAuthor = Field(default_factory=PostAuthor)
     texto: str | None = None
     data_publicacao: str | None = None
-    engajamento: Engajamento
+    engajamento: Engagement
     coletado_em: str
 
 
-class AutorComentario(BaseModel):
+class CommentAuthor(BaseModel):
     """Autor de um comentário."""
 
     model_config = ConfigDict(extra="forbid")
@@ -58,7 +58,7 @@ class AutorComentario(BaseModel):
     id: str | None = None
 
 
-class Comentario(BaseModel):
+class Comment(BaseModel):
     """Um comentário de uma postagem. Campos obrigatórios: ``postagem_url``,
     ``texto``, ``coletado_em``."""
 
@@ -66,19 +66,19 @@ class Comentario(BaseModel):
 
     id: str | None = None
     postagem_url: str
-    autor: AutorComentario = Field(default_factory=AutorComentario)
+    autor: CommentAuthor = Field(default_factory=CommentAuthor)
     texto: str
     curtidas: int | None = None
     data: str | None = None
     coletado_em: str
 
 
-class ComentarioExpandido(Comentario):
+class ExpandedComment(Comment):
     """Comentário com o vínculo de resposta e o total declarado de respostas.
 
     Saída **opt-in** (``comentarios --com-respostas``): raízes e respostas vêm
     numa lista plana e cada resposta aponta para a raiz via ``parent_id``. Não
-    substitui o contrato oficial :class:`Comentario`, que permanece inalterado
+    substitui o contrato oficial :class:`Comment`, que permanece inalterado
     quando a coleta não pede respostas.
 
     Attributes:

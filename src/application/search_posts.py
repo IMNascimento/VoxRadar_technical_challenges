@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from ..domain.exceptions import InvalidInputError
+from ..domain.exceptions import InvalidInputError, KwaiCollectorError
 from ..domain.identity import post_dedup_key
 from ..domain.value_objects.iso_timestamp import IsoTimestamp
 from ..shared.logging_config import COLLECTOR_LOGGER_NAME, get_logger
 from ..shared.utils.timestamps import now_iso
-from .models import Postagem
+from .exceptions import reraise_with_partial
+from .models import Post
 from .ports import SearchApiPort
 
 logger = get_logger(COLLECTOR_LOGGER_NAME)
@@ -27,7 +28,7 @@ class SearchPosts:
         """
         self._api = api
 
-    def execute(self, keywords: list[str], *, limit: int = 20) -> list[Postagem]:
+    def execute(self, keywords: list[str], *, limit: int = 20) -> list[Post]:
         """Faz uma requisição por palavra-chave e deduplica o resultado.
 
         Args:
@@ -39,15 +40,22 @@ class SearchPosts:
 
         Raises:
             InvalidInputError: se ``keywords`` estiver vazio.
+            CollectionInterruptedError: se uma palavra-chave falhar depois de as
+                anteriores já terem devolvido postagens; o coletado vai em ``partial``.
+            KwaiCollectorError: se a falha vier na primeira palavra-chave.
         """
         if not keywords:
             raise InvalidInputError("informe ao menos uma palavra-chave")
         count = self._request_count(limit)
         collected_at = IsoTimestamp(now_iso())
-        unique: dict[str, Postagem] = {}
+        unique: dict[str, Post] = {}
         for keyword in keywords:
             logger.info("buscando por %r (count=%d)", keyword, count)
-            for post in self._api.search_posts(keyword, count, collected_at=collected_at):
+            try:
+                batch = self._api.search_posts(keyword, count, collected_at=collected_at)
+            except KwaiCollectorError as exc:
+                reraise_with_partial(exc, list(unique.values()))
+            for post in batch:
                 unique.setdefault(post_dedup_key(post.id, post.url), post)
             if len(unique) >= limit:
                 break

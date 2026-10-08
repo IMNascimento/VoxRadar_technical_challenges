@@ -12,9 +12,9 @@ from dataclasses import dataclass
 from typing import Protocol
 
 from ..domain.value_objects.cursor import Cursor
-from ..domain.value_objects.identifiers import CommentId, Handle, PhotoId
+from ..domain.value_objects.identifiers import CommentId, Handle, PhotoId, UserId
 from ..domain.value_objects.iso_timestamp import IsoTimestamp
-from .models import Comentario, Postagem
+from .models import Comment, Post
 
 
 @dataclass(frozen=True)
@@ -28,7 +28,7 @@ class RootComment:
             diferir do que a coleta entrega.
     """
 
-    comentario: Comentario
+    comentario: Comment
     respostas_declaradas: int | None
 
 
@@ -55,7 +55,7 @@ class SubComment:
         reply_to_usuario: nome do usuário respondido, quando a API informar.
     """
 
-    comentario: Comentario
+    comentario: Comment
     reply_to_id: str | None
     reply_to_usuario: str | None
 
@@ -80,22 +80,45 @@ class SearchApiPort(Protocol):
     do adapter HTTP, e por isso fica testável sem rede.
     """
 
-    def search_posts(
-        self, keyword: str, count: int, *, collected_at: IsoTimestamp
-    ) -> list[Postagem]:
+    def search_posts(self, keyword: str, count: int, *, collected_at: IsoTimestamp) -> list[Post]:
         """Busca postagens de uma palavra-chave (uma requisição por chamada)."""
         ...
 
 
-class ProfileApiPort(Protocol):
-    """Leitura das postagens de um perfil a partir do SSR da API web do Kwai.
+@dataclass(frozen=True)
+class ProfilePage:
+    """Uma página do feed de perfil devolvida pela API móvel.
 
-    Separada de :class:`SearchApiPort` (ISP): o caso de uso de postagens de
-    usuário depende apenas desta porta e não da busca.
+    Attributes:
+        posts: postagens já mapeadas para o contrato.
+        next_cursor: cursor para a próxima página.
     """
 
-    def profile_posts(self, handle: Handle, *, collected_at: IsoTimestamp) -> list[Postagem]:
-        """Coleta as postagens embutidas no estado SSR do perfil."""
+    posts: list[Post]
+    next_cursor: Cursor
+
+
+class ProfileApiPort(Protocol):
+    """Leitura das postagens de um perfil na API móvel anônima.
+
+    São dois passos: resolver o handle para o id numérico (o feed não aceita
+    handle) e então paginar o feed. O adapter busca **uma** página por chamada;
+    decidir o fim da paginação é do caso de uso (via :meth:`Cursor.is_end`).
+    """
+
+    def resolve_user(self, handle: Handle) -> UserId:
+        """Resolve o handle para o id numérico usado pelo feed (que não aceita handle)."""
+        ...
+
+    def fetch_profile_page(
+        self,
+        user_id: UserId,
+        *,
+        cursor: Cursor,
+        count: int,
+        collected_at: IsoTimestamp,
+    ) -> ProfilePage:
+        """Busca uma página do feed do usuário."""
         ...
 
 

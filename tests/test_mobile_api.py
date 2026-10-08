@@ -12,20 +12,23 @@ import respx
 from src.config import Settings
 from src.domain.exceptions import KwaiApiError
 from src.domain.value_objects.cursor import Cursor
-from src.domain.value_objects.identifiers import CommentId, PhotoId
+from src.domain.value_objects.identifiers import CommentId, Handle, PhotoId, UserId
 from src.domain.value_objects.iso_timestamp import IsoTimestamp
+from src.infrastructure.app_identity import APP_VERSION, CLIENT_KEY
 from src.infrastructure.exceptions import KwaiTransportError, UnexpectedResponseError
 from src.infrastructure.mobile_client import (
-    CLIENT_KEY,
     COMMENT_FALLBACK_HOSTS,
     COMMENT_HOST,
     COMMENT_PATH,
     DEFAULT_BODY,
     DEFAULT_QUERY,
+    PROFILE_FEED_PATH,
+    PROFILE_MINIMAL_QUERY,
     SUBLIST_PATH,
-    MobileCommentAdapter,
+    USER_INFO_PATH,
+    MobileApiAdapter,
 )
-from src.shared.utils.signature import compute_sig
+from src.infrastructure.signature import compute_sig
 
 # Vetor REAL capturado de um request do Kwai Lite (comment/list/v2).
 _QUERY = {
@@ -79,12 +82,24 @@ _BODY = {
 _APP_SIG = "a1f8385e9b1e3ac7006c4b9d84be2014"
 
 # O request real do app (hook OkHttp) também trazia `__NS_sig3` na query, que
-# NÃO entra no preimage do `sig` (é adicionado depois: sig3 = atlasSign(path+sig)).
+# NÃO entra no preimage do `sig`. O algoritmo de `sig3` não foi reproduzido;
+# as entradas observadas de `atlasSign` não eram apenas caminho + `sig`.
 _APP_SIG3 = "hMzS5wHHExtlOGY5YmRhYWM2YjI2Y2VhYmJhMGEzYTI2MjBjZDFiYWQxYzIxM2QwYmViMWJmYTk"
 
 
 def test_compute_sig_reproduz_o_sig_do_app() -> None:
     assert compute_sig({**_QUERY, **_BODY}) == _APP_SIG
+
+
+def test_versao_do_app_e_o_vetor_do_sal_andam_juntos() -> None:
+    """O sal só é provado para a versão do app do vetor real acima.
+
+    Trocar ``APP_VERSION`` sem capturar um vetor novo (e revalidar o sal) quebra
+    a assinatura (``result: 50``); este teste força atualizar os dois juntos.
+    """
+    assert _QUERY["appver"] == APP_VERSION
+    assert PROFILE_MINIMAL_QUERY["appver"] == APP_VERSION
+    assert DEFAULT_QUERY["appver"] == APP_VERSION
 
 
 def test_compute_sig_ignora_tokens_derivados() -> None:
@@ -99,18 +114,17 @@ def test_compute_sig_ordena_chaves_e_muda_com_parametro() -> None:
 
 @respx.mock
 def test_requisicao_envia_o_contexto_completo_do_app(settings: Settings) -> None:
-    """Trava o contrato da fonte da verdade (`kwai-pure`): contexto completo.
+    """Trava o contrato do contexto completo do app.
 
     Se alguém reduzir `DEFAULT_QUERY`/`DEFAULT_BODY` "por limpeza", este teste
-    falha: a emulação máxima do app é intencional e o mínimo provado é apenas a
-    escada de fallback documentada em `solucao_api_movel_anonima.md` §3.
+    falha: esse contexto é intencional. O fallback troca gateways, não parâmetros.
     """
     route = respx.post(COMMENT_HOST + COMMENT_PATH).mock(
         return_value=httpx.Response(
             200, json={"result": 1, "pcursor": "no_more", "rootComments": []}
         )
     )
-    client = MobileCommentAdapter(settings)
+    client = MobileApiAdapter(settings)
     try:
         client.fetch_page(
             PhotoId("5246843676744520217"),
@@ -152,7 +166,7 @@ def test_erro_de_negocio_nao_troca_de_gateway(settings: Settings) -> None:
         )
         for host in COMMENT_FALLBACK_HOSTS
     ]
-    client = MobileCommentAdapter(settings)
+    client = MobileApiAdapter(settings)
     try:
         with pytest.raises(KwaiApiError) as exc:
             client.fetch_page(
@@ -168,8 +182,7 @@ def test_erro_de_negocio_nao_troca_de_gateway(settings: Settings) -> None:
     assert len(primeira.calls) == 1
     assert all(len(route.calls) == 0 for route in fallbacks)
     assert exc.value.result == 2
-    # mensagem no formato da rota móvel: sem sufixo " em {path}"
-    assert str(exc.value) == "erro de negócio da API móvel do Kwai (result=2)"
+    assert str(exc.value) == f"erro de negócio da API móvel do Kwai (result=2) em {COMMENT_PATH}"
 
 
 @respx.mock
@@ -183,7 +196,7 @@ def test_falha_de_rede_no_primeiro_host_tenta_o_proximo(settings: Settings) -> N
             200, json={"result": 1, "pcursor": "no_more", "rootComments": []}
         )
     )
-    client = MobileCommentAdapter(settings)
+    client = MobileApiAdapter(settings)
     try:
         page = client.fetch_page(
             PhotoId("5246843676744520217"),
@@ -207,7 +220,7 @@ def test_resposta_sem_root_comments_vira_pagina_vazia(settings: Settings) -> Non
     respx.post(COMMENT_HOST + COMMENT_PATH).mock(
         return_value=httpx.Response(200, json={"result": 1, "pcursor": "no_more"})
     )
-    client = MobileCommentAdapter(settings)
+    client = MobileApiAdapter(settings)
     try:
         page = client.fetch_page(
             PhotoId("5246843676744520217"),
@@ -234,7 +247,7 @@ def test_corpo_nao_json_no_host_primario_cai_para_o_fallback(settings: Settings)
             200, json={"result": 1, "pcursor": "no_more", "rootComments": []}
         )
     )
-    client = MobileCommentAdapter(settings)
+    client = MobileApiAdapter(settings)
     try:
         page = client.fetch_page(
             PhotoId("5246843676744520217"),
@@ -260,7 +273,7 @@ def test_corpo_nao_json_em_todos_os_hosts_levanta_erro_de_transporte(settings: S
         )
         for host in (COMMENT_HOST, *COMMENT_FALLBACK_HOSTS)
     ]
-    client = MobileCommentAdapter(settings)
+    client = MobileApiAdapter(settings)
     try:
         with pytest.raises(KwaiTransportError) as exc:
             client.fetch_page(
@@ -301,7 +314,7 @@ def test_fetch_sub_page_vai_para_sublist_e_mapeia_vinculo(settings: Settings) ->
             },
         )
     )
-    client = MobileCommentAdapter(settings)
+    client = MobileApiAdapter(settings)
     try:
         page = client.fetch_sub_page(
             PhotoId("5246843676744520217"),
@@ -334,7 +347,7 @@ def test_fetch_sub_page_clampa_count_em_1_e_100(settings: Settings) -> None:
             200, json={"result": 1, "pcursor": "no_more", "subComments": []}
         )
     )
-    client = MobileCommentAdapter(settings)
+    client = MobileApiAdapter(settings)
     try:
         for pedido, esperado in ((0, "1"), (500, "100")):
             client.fetch_sub_page(
@@ -368,7 +381,7 @@ def test_sublist_erro_de_negocio_nao_troca_gateway(settings: Settings) -> None:
         )
         for host in COMMENT_FALLBACK_HOSTS
     ]
-    client = MobileCommentAdapter(settings)
+    client = MobileApiAdapter(settings)
     try:
         with pytest.raises(KwaiApiError) as exc:
             client.fetch_sub_page(
@@ -397,7 +410,7 @@ def test_sublist_corpo_invalido_no_primario_cai_para_o_fallback(settings: Settin
             200, json={"result": 1, "pcursor": "no_more", "subComments": []}
         )
     )
-    client = MobileCommentAdapter(settings)
+    client = MobileApiAdapter(settings)
     try:
         page = client.fetch_sub_page(
             PhotoId("1"),
@@ -413,3 +426,191 @@ def test_sublist_corpo_invalido_no_primario_cai_para_o_fallback(settings: Settin
     assert len(primario.calls) == 1
     assert len(fallback.calls) == 1
     assert page.next_cursor.value == "no_more"
+
+
+@respx.mock
+def test_get_info_envia_contexto_completo_e_arroba(settings: Settings) -> None:
+    """Trava o contrato do ``getInfo``: contexto COMPLETO e ``userIds`` com ``@``.
+
+    Com o contexto mínimo este endpoint responde ``result: 11`` e sem o ``@``
+    devolve ``users: []`` — por isso os dois detalhes ficam travados aqui.
+    """
+    route = respx.post(COMMENT_HOST + USER_INFO_PATH).mock(
+        return_value=httpx.Response(
+            200,
+            json={"result": 1, "users": [{"user_id": 150001214685137, "user_name": "Perfil"}]},
+        )
+    )
+    client = MobileApiAdapter(settings)
+    try:
+        resolved = client.resolve_user(Handle("parkourcity"))
+    finally:
+        client.close()
+
+    request = route.calls.last.request
+    sent_query = dict(urllib.parse.parse_qsl(request.url.query.decode(), keep_blank_values=True))
+    sent_body: dict[str, Any] = dict(
+        urllib.parse.parse_qsl(request.content.decode(), keep_blank_values=True)
+    )
+
+    assert set(sent_query) == set(DEFAULT_QUERY) | {"timestamp", "session_id"}
+    assert set(sent_body) == {"userIds", "client_key", "os", "sig"}
+    assert sent_body["userIds"] == "@parkourcity"
+    assert resolved == UserId("150001214685137")
+
+
+@respx.mock
+def test_feed_de_perfil_usa_o_contexto_minimo(settings: Settings) -> None:
+    """Preserva o contexto mínimo validado no coletor, sem exigir isso da API."""
+    route = respx.post(COMMENT_HOST + PROFILE_FEED_PATH).mock(
+        return_value=httpx.Response(200, json={"result": 1, "pcursor": "c1", "feeds": []})
+    )
+    client = MobileApiAdapter(settings)
+    try:
+        page = client.fetch_profile_page(
+            UserId("150001214685137"),
+            cursor=Cursor(""),
+            count=30,
+            collected_at=IsoTimestamp("2026-09-08T00:00:00Z"),
+        )
+    finally:
+        client.close()
+
+    request = route.calls.last.request
+    sent_query = dict(urllib.parse.parse_qsl(request.url.query.decode(), keep_blank_values=True))
+    sent_body: dict[str, Any] = dict(
+        urllib.parse.parse_qsl(request.content.decode(), keep_blank_values=True)
+    )
+
+    assert sent_query == PROFILE_MINIMAL_QUERY
+    assert set(sent_body) == {
+        "user_id",
+        "count",
+        "privacy",
+        "lang",
+        "pcursor",
+        "client_key",
+        "os",
+        "sig",
+    }
+    assert sent_body["user_id"] == "150001214685137"
+    assert sent_body["count"] == "30"
+    assert page.next_cursor.value == "c1"
+    assert page.posts == []
+
+
+@respx.mock
+def test_get_info_sem_usuario_levanta_erro(settings: Settings) -> None:
+    """Resposta válida mas sem usuário não pode virar coleta silenciosa vazia."""
+    respx.post(COMMENT_HOST + USER_INFO_PATH).mock(
+        return_value=httpx.Response(200, json={"result": 1, "users": []})
+    )
+    client = MobileApiAdapter(settings)
+    try:
+        with pytest.raises(UnexpectedResponseError):
+            client.resolve_user(Handle("nao_existe"))
+    finally:
+        client.close()
+
+
+# --- retry da escada de gateways --------------------------------------------
+
+_PAGINA_VAZIA = {"result": 1, "pcursor": "no_more", "rootComments": []}
+
+
+def _buscar_primeira_pagina(client: MobileApiAdapter) -> Any:
+    return client.fetch_page(
+        PhotoId("5246843676744520217"),
+        cursor=Cursor(""),
+        count=50,
+        postagem_url="https://www.kwai.com/@perfil/video/5246843676744520217",
+        collected_at=IsoTimestamp("2026-09-08T00:00:00Z"),
+    )
+
+
+@pytest.mark.parametrize(
+    "falha",
+    [httpx.ConnectError("gateway fora do ar"), httpx.Response(429), httpx.Response(503)],
+    ids=["rede", "429", "503"],
+)
+@respx.mock
+def test_escada_inteira_falhando_e_repetida_com_backoff(
+    retry_settings: Settings, no_backoff: list[float], falha: Any
+) -> None:
+    """Todos os gateways caem na 1ª rodada: a escada recomeça depois do backoff."""
+    primario = respx.post(COMMENT_HOST + COMMENT_PATH).mock(
+        side_effect=[falha, httpx.Response(200, json=_PAGINA_VAZIA)]
+    )
+    fallbacks = [
+        respx.post(host + COMMENT_PATH).mock(side_effect=[falha]) for host in COMMENT_FALLBACK_HOSTS
+    ]
+    client = MobileApiAdapter(retry_settings)
+    try:
+        page = _buscar_primeira_pagina(client)
+    finally:
+        client.close()
+
+    assert len(primario.calls) == 2
+    assert all(len(route.calls) == 1 for route in fallbacks)
+    assert len(no_backoff) == 1
+    assert page.next_cursor.value == "no_more"
+
+
+@respx.mock
+def test_resolucao_do_handle_tambem_repete_a_escada(
+    retry_settings: Settings, no_backoff: list[float]
+) -> None:
+    """O ``getInfo`` passa pela mesma escada: uma rodada inteira caída é repetida."""
+    info_ok = {"result": 1, "users": [{"user_id": 150001214685137}]}
+    primario = respx.post(COMMENT_HOST + USER_INFO_PATH).mock(
+        side_effect=[httpx.ConnectError("fora do ar"), httpx.Response(200, json=info_ok)]
+    )
+    for host in COMMENT_FALLBACK_HOSTS:
+        respx.post(host + USER_INFO_PATH).mock(side_effect=[httpx.ConnectError("fora do ar")])
+    client = MobileApiAdapter(retry_settings)
+    try:
+        resolved = client.resolve_user(Handle("parkourcity"))
+    finally:
+        client.close()
+
+    assert resolved == UserId("150001214685137")
+    assert len(primario.calls) == 2
+    assert len(no_backoff) == 1
+
+
+@respx.mock
+def test_falha_permanente_esgota_os_retries_e_levanta_erro_de_transporte(
+    retry_settings: Settings, no_backoff: list[float]
+) -> None:
+    """Com ``max_retries=2`` são 3 rodadas da escada e depois o erro de transporte."""
+    rotas = [
+        respx.post(host + COMMENT_PATH).mock(side_effect=httpx.ConnectError("fora do ar"))
+        for host in (COMMENT_HOST, *COMMENT_FALLBACK_HOSTS)
+    ]
+    client = MobileApiAdapter(retry_settings)
+    try:
+        with pytest.raises(KwaiTransportError):
+            _buscar_primeira_pagina(client)
+    finally:
+        client.close()
+
+    assert all(len(route.calls) == 3 for route in rotas)
+    assert len(no_backoff) == 2
+
+
+@respx.mock
+def test_erro_de_negocio_nao_e_repetido_mesmo_com_retries(
+    retry_settings: Settings, no_backoff: list[float]
+) -> None:
+    rota = respx.post(COMMENT_HOST + COMMENT_PATH).mock(
+        return_value=httpx.Response(200, json={"result": 50, "error_msg": "assinatura"})
+    )
+    client = MobileApiAdapter(retry_settings)
+    try:
+        with pytest.raises(KwaiApiError):
+            _buscar_primeira_pagina(client)
+    finally:
+        client.close()
+
+    assert len(rota.calls) == 1
+    assert no_backoff == []

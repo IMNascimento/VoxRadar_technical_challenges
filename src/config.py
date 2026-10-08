@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     )
     user_agent: str = Field(
         default=DEFAULT_USER_AGENT,
-        description="User-Agent enviado nas requisições web (busca e perfil).",
+        description="User-Agent enviado nas requisições web (só a busca; a API móvel usa o do app).",
     )
 
     @field_validator("user_agent", mode="before")

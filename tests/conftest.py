@@ -29,11 +29,20 @@ def profile_feeds() -> dict[str, Any]:
 
 
 @pytest.fixture
-def profile_html() -> str:
-    return (FIXTURES / "profile_page.html").read_text(encoding="utf-8")
-
-
-@pytest.fixture
 def settings() -> Settings:
     """Settings determinísticas para teste: sem rate limit nem retries."""
     return Settings(request_delay=0.0, http_timeout=5.0, max_retries=0)
+
+
+@pytest.fixture
+def retry_settings() -> Settings:
+    """Settings com 2 retries extras (3 tentativas), sem rate limit."""
+    return Settings(request_delay=0.0, http_timeout=5.0, max_retries=2)
+
+
+@pytest.fixture
+def no_backoff(monkeypatch: pytest.MonkeyPatch) -> list[float]:
+    """Neutraliza o ``sleep`` do backoff do tenacity e devolve os intervalos pedidos."""
+    waits: list[float] = []
+    monkeypatch.setattr("tenacity.nap.time.sleep", waits.append)
+    return waits

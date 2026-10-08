@@ -11,8 +11,13 @@ import respx
 from src.config import Settings
 from src.container import build_services
 from src.domain.exceptions import InvalidInputError, KwaiApiError
-from src.infrastructure.mobile_client import COMMENT_HOST, COMMENT_PATH
-from src.infrastructure.nuxt import FeedsData
+from src.infrastructure.exceptions import KwaiTransportError
+from src.infrastructure.mobile_client import (
+    COMMENT_HOST,
+    COMMENT_PATH,
+    PROFILE_FEED_PATH,
+    USER_INFO_PATH,
+)
 from src.infrastructure.web_client import SEARCH_PATH
 
 BASE = "https://www.kwai.com"
@@ -41,7 +46,9 @@ def test_search_propaga_erro_de_negocio(settings: Settings) -> None:
 
 
 @respx.mock
-def test_search_lote_sobrevive_a_feed_orfao(settings: Settings, search_response: dict[str, Any]) -> None:
+def test_search_lote_sobrevive_a_feed_orfao(
+    settings: Settings, search_response: dict[str, Any]
+) -> None:
     """Feed órfão (sem photo_id e sem kwai_id) é ignorado sem contaminar os válidos."""
     orfao = {"caption": "sem ids", "like_count": 5}
     body = dict(search_response)
@@ -56,30 +63,92 @@ def test_search_lote_sobrevive_a_feed_orfao(settings: Settings, search_response:
     assert all(p.url != "https://www.kwai.com/" for p in posts)
 
 
+@respx.mock
+def test_search_repete_em_status_transitorio_e_conclui(
+    retry_settings: Settings, no_backoff: list[float], search_response: dict[str, Any]
+) -> None:
+    rota = respx.post(BASE + SEARCH_PATH).mock(
+        side_effect=[httpx.Response(503), httpx.Response(200, json=search_response)]
+    )
+    with build_services(retry_settings) as services:
+        posts = services.search_posts.execute(["sports"], limit=10)
+
+    assert len(rota.calls) == 2
+    assert len(posts) == len(search_response["feeds"])
+    assert len(no_backoff) == 1
+
+
+@respx.mock
+def test_search_desiste_ao_esgotar_os_retries(
+    retry_settings: Settings, no_backoff: list[float]
+) -> None:
+    rota = respx.post(BASE + SEARCH_PATH).mock(return_value=httpx.Response(503))
+    with build_services(retry_settings) as services, pytest.raises(KwaiTransportError):
+        services.search_posts.execute(["sports"], limit=10)
+
+    assert len(rota.calls) == 3  # 1 tentativa + 2 retries
+    assert len(no_backoff) == 2
+
+
+@respx.mock
+def test_search_nao_repete_erro_de_cliente(
+    retry_settings: Settings, no_backoff: list[float]
+) -> None:
+    rota = respx.post(BASE + SEARCH_PATH).mock(return_value=httpx.Response(404))
+    with build_services(retry_settings) as services, pytest.raises(KwaiTransportError):
+        services.search_posts.execute(["sports"], limit=10)
+
+    assert len(rota.calls) == 1
+    assert no_backoff == []
+
+
 def test_search_sem_palavra_chave(settings: Settings) -> None:
     with build_services(settings) as services, pytest.raises(InvalidInputError):
         services.search_posts.execute([], limit=10)
 
 
+def _profile_feed_page(ids: list[str], pcursor: str) -> dict[str, Any]:
+    return {
+        "result": 1,
+        "pcursor": pcursor,
+        "feeds": [
+            {
+                "photo_id_str": pid,
+                "kwai_id": "perfil_teste",
+                "user_id_str": "u_1",
+                "caption": f"post {pid}",
+                "like_count": 10,
+                "comment_count": 1,
+                "forward_count": 2,
+                "view_count": 100,
+                "timestamp": 1_700_000_000_000,
+            }
+            for pid in ids
+        ],
+    }
+
+
 @respx.mock
-def test_user_posts_via_ssr(
-    settings: Settings,
-    profile_html: str,
-    profile_feeds: dict[str, Any],
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    respx.get(BASE + "/@perfil_teste").mock(return_value=httpx.Response(200, text=profile_html))
-    # isola a avaliação SSR devolvendo feeds conhecidos
-    monkeypatch.setattr(
-        "src.infrastructure.web_client.evaluate_feeds_data",
-        lambda _html: FeedsData(
-            feeds=profile_feeds["feeds"], cursor=profile_feeds.get("cursor")
-        ),
+def test_user_posts_resolve_handle_pagina_e_deduplica(settings: Settings) -> None:
+    """O perfil vem da API móvel: resolve o handle e pagina pelo ``pcursor``."""
+    respx.post(COMMENT_HOST + USER_INFO_PATH).mock(
+        return_value=httpx.Response(
+            200,
+            json={"result": 1, "users": [{"user_id": 150001214685137, "user_name": "Perfil"}]},
+        )
+    )
+    respx.post(COMMENT_HOST + PROFILE_FEED_PATH).mock(
+        side_effect=[
+            httpx.Response(200, json=_profile_feed_page(["1", "2"], "PAGE2")),
+            httpx.Response(200, json=_profile_feed_page(["2", "3"], "no_more")),
+        ]
     )
     with build_services(settings) as services:
         posts = services.user_posts.execute("@perfil_teste")
-    assert len(posts) == len(profile_feeds["feeds"])
-    assert posts[0].autor.usuario == "@parkourcity"
+
+    assert [p.id for p in posts] == ["1", "2", "3"]
+    assert posts[0].autor.usuario == "@perfil_teste"
+    assert posts[0].engajamento.compartilhamentos == 2
 
 
 def test_user_posts_usuario_invalido(settings: Settings) -> None:

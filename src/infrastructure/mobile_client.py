@@ -1,9 +1,9 @@
-"""Adapter da API MÓVEL anônima do Kwai (comentários) — 100% Python, sem emulador.
+"""Adapter da API MÓVEL anônima do Kwai (comentários e perfil) — 100% Python.
 
 Descoberta (09/2026, validada contra o app real):
     ``POST /rest/o/comment/list/v2`` (API móvel) aceita uma requisição
     **anônima** (sem login, sem cookies) assinada **apenas com o ``sig``** — a
-    fórmula e o preimage estão em :mod:`src.shared.utils.signature`.
+    fórmula e o preimage estão em :mod:`src.infrastructure.signature`.
 
     O ``__NS_sig3`` **não** é necessário para estes endpoints (verificado: sem
     ele a resposta é ``result: 1`` com os dados) e, quando presente na
@@ -15,12 +15,17 @@ Descoberta (09/2026, validada contra o app real):
     mesmo contexto e a mesma assinatura; o corpo usa ``rootCommentId`` e exige
     ``client_key`` (sem ele o gateway responde ``result: 40``).
 
-Os parâmetros abaixo são o **contexto completo capturado do app** (Kwai Lite
-10.3.20.539600) — a configuração da **fonte da verdade** (`kwai-pure`): emula o
-app ao máximo (`timestamp`/`session_id` são gerados por requisição, como o app
-faz). Existe uma **escada de fallback** documentada: se o gateway endurecer,
-o mínimo provado (`kpn` + `appver` no query; `photoId`/`count`/`pcursor`/
-`client_key`/`sig` no corpo) é aceito — ver ``solucao_api_movel_anonima.md`` §3.
+    O feed de um perfil vem de dois passos (2026-10): ``POST /rest/o/user/getInfo``
+    resolve ``userIds=@handle`` no id numérico e ``POST /rest/o/feed/profile``
+    pagina as postagens por ``pcursor``. **O contexto ideal difere por rota**:
+    o ``getInfo`` usa o contexto completo e o feed usa o mínimo validado no coletor.
+    O app também retornou feeds com contexto completo; respostas vazias em testes
+    anteriores não demonstram uma rejeição universal desse contexto.
+
+Os parâmetros abaixo são o **contexto completo capturado do app** (versão em
+:mod:`src.infrastructure.app_identity`): emula o app ao máximo
+(``timestamp``/``session_id`` são gerados por requisição, como o app faz). Há
+uma **escada de fallback entre gateways**, sem troca automática de contexto.
 """
 
 from __future__ import annotations
@@ -31,19 +36,27 @@ from typing import Any
 
 import httpx
 
-from ..application.ports import CommentApiPort, CommentPage, RootComment, SubCommentPage
+from ..application.ports import (
+    CommentApiPort,
+    CommentPage,
+    ProfileApiPort,
+    ProfilePage,
+    RootComment,
+    SubCommentPage,
+)
 from ..config import Settings
 from ..domain.business_result import ensure_business_success
 from ..domain.value_objects.cursor import Cursor
-from ..domain.value_objects.identifiers import CommentId, PhotoId
+from ..domain.value_objects.identifiers import CommentId, Handle, PhotoId, UserId
 from ..domain.value_objects.iso_timestamp import IsoTimestamp
 from ..shared.logging_config import get_logger
 from ..shared.utils.coercion import as_int_scalar
 from ..shared.utils.ratelimit import RateLimiter
-from ..shared.utils.signature import compute_sig
+from .app_identity import APP_USER_AGENT, APP_VERSION, CLIENT_KEY
 from .exceptions import KwaiTransportError, UnexpectedResponseError
-from .http_utils import decode_json_dict
-from .mapping import parse_comment, parse_sub_comment
+from .http_utils import decode_json_dict, read_cursor, read_object_list, transient_retry
+from .mapping import parse_comment, parse_feeds, parse_sub_comment
+from .signature import compute_sig
 
 logger = get_logger("mobile")
 
@@ -58,12 +71,13 @@ COMMENT_FALLBACK_HOSTS: tuple[str, ...] = (
     "https://api2-us.kwaipros.com",
 )
 COMMENT_HOSTS: tuple[str, ...] = (COMMENT_HOST, *COMMENT_FALLBACK_HOSTS)
-CLIENT_KEY = "3c2cd3f3"
-APP_VERSION = "10.3.20.539600"
-# O app usa este UA; a resposta é idêntica sem ele (mantido por fidelidade).
-APP_USER_AGENT = "kwai-android"
+# Rotas do perfil (descobertas no app em 2026-10): resolver o handle e paginar.
+USER_INFO_PATH = "/rest/o/user/getInfo"
+PROFILE_FEED_PATH = "/rest/o/feed/profile"
+# Contexto mínimo validado para o feed do coletor, não uma exigência universal da API.
+PROFILE_MINIMAL_QUERY: dict[str, str] = {"kpn": "KWAI", "appver": APP_VERSION}
 
-# Contexto/dispositivo do app (fonte da verdade: `kwai-pure`).
+# Contexto/dispositivo do app, capturado do request real (Kwai Lite).
 DEFAULT_QUERY: dict[str, str] = {
     "mod": "Google(sdk_gphone_x86)",
     "appver": APP_VERSION,
@@ -106,15 +120,16 @@ DEFAULT_BODY: dict[str, str] = {
 }
 
 
-class MobileCommentAdapter(CommentApiPort):
-    """Acesso HTTP à API móvel de comentários, implementando :class:`CommentApiPort`."""
+class MobileApiAdapter(CommentApiPort, ProfileApiPort):
+    """Acesso HTTP à API móvel, implementando as portas de comentários e de perfil."""
 
     def __init__(self, settings: Settings) -> None:
         """Inicializa a sessão httpx anônima.
 
         Args:
-            settings: configuração do coletor (timeout e delay do rate limit).
+            settings: configuração do coletor (timeout, delay do rate limit e retries).
         """
+        self._max_retries = settings.max_retries
         self._rate = RateLimiter(settings.request_delay)
         self._client = httpx.Client(
             timeout=settings.http_timeout,
@@ -153,7 +168,7 @@ class MobileCommentAdapter(CommentApiPort):
         """
         query, body = self._build_request(photo_id.value, cursor=cursor.value, count=count)
         payload = self._post_to_gateways(path=COMMENT_PATH, query=query, body=body)
-        raw_comments = payload.get("rootComments") or []
+        raw_comments = read_object_list(payload, "rootComments", source=COMMENT_PATH)
         comments = [
             RootComment(
                 comentario=parse_comment(
@@ -163,7 +178,7 @@ class MobileCommentAdapter(CommentApiPort):
             )
             for raw in raw_comments
         ]
-        next_cursor = Cursor(str(payload.get("pcursor") or ""))
+        next_cursor = Cursor(read_cursor(payload, source=COMMENT_PATH))
         return CommentPage(comments=comments, next_cursor=next_cursor)
 
     def fetch_sub_page(
@@ -201,13 +216,87 @@ class MobileCommentAdapter(CommentApiPort):
             count=count,
         )
         payload = self._post_to_gateways(path=SUBLIST_PATH, query=query, body=body)
-        raw_comments = payload.get("subComments") or []
+        raw_comments = read_object_list(payload, "subComments", source=SUBLIST_PATH)
         comments = [
             parse_sub_comment(raw, postagem_url=postagem_url, collected_at=collected_at.value)
             for raw in raw_comments
         ]
-        next_cursor = Cursor(str(payload.get("pcursor") or ""))
+        next_cursor = Cursor(read_cursor(payload, source=SUBLIST_PATH))
         return SubCommentPage(comments=comments, next_cursor=next_cursor)
+
+    def resolve_user(self, handle: Handle) -> UserId:
+        """Resolve o handle para o id numérico do usuário (contexto COMPLETO).
+
+        O endpoint exige o ``@`` no ``userIds`` e só devolve o usuário com o
+        contexto completo do app — com o mínimo ele responde ``result: 11``.
+
+        Args:
+            handle: conta validada, sem ``@``.
+
+        Returns:
+            O id numérico do usuário.
+
+        Raises:
+            KwaiTransportError: se todos os gateways falharem no transporte.
+            UnexpectedResponseError: se o Kwai não devolver o usuário.
+            KwaiApiError: se o Kwai sinalizar erro de negócio (``result != 1``).
+        """
+        query = self._signed_query()
+        body = {
+            "userIds": f"@{handle.value}",
+            "client_key": CLIENT_KEY,
+            "os": "android",
+        }
+        body["sig"] = compute_sig({**query, **body})
+        payload = self._post_to_gateways(path=USER_INFO_PATH, query=query, body=body)
+        users = read_object_list(payload, "users", source=USER_INFO_PATH)
+        primeiro = users[0] if users else None
+        if not isinstance(primeiro, dict) or primeiro.get("user_id") is None:
+            raise UnexpectedResponseError(f"usuário @{handle.value} não encontrado na resposta")
+        return UserId(str(primeiro["user_id"]))
+
+    def fetch_profile_page(
+        self,
+        user_id: UserId,
+        *,
+        cursor: Cursor,
+        count: int,
+        collected_at: IsoTimestamp,
+    ) -> ProfilePage:
+        """Busca uma página do feed de perfil (contexto MÍNIMO).
+
+        Mantém o contexto mínimo validado no coletor. O app também obteve feeds
+        com contexto completo; a diferença entre combinações não foi isolada.
+
+        Args:
+            user_id: id numérico resolvido a partir do handle.
+            cursor: ``pcursor`` da página (vazio na primeira).
+            count: itens por página.
+            collected_at: carimbo de coleta aplicado às postagens.
+
+        Returns:
+            A página com as postagens mapeadas e o próximo cursor.
+
+        Raises:
+            KwaiTransportError: se todos os gateways falharem no transporte.
+            KwaiApiError: se o Kwai sinalizar erro de negócio (``result != 1``).
+        """
+        query = dict(PROFILE_MINIMAL_QUERY)
+        body = {
+            "user_id": user_id.value,
+            "count": str(count),
+            "privacy": "public",
+            "lang": "en",
+            "pcursor": cursor.value,
+            "client_key": CLIENT_KEY,
+            "os": "android",
+        }
+        body["sig"] = compute_sig({**query, **body})
+        payload = self._post_to_gateways(path=PROFILE_FEED_PATH, query=query, body=body)
+        return ProfilePage(
+            posts=parse_feeds(payload.get("feeds"), collected_at=collected_at.value),
+            next_cursor=Cursor(read_cursor(payload, source=PROFILE_FEED_PATH)),
+        )
 
     @staticmethod
     def _signed_query() -> dict[str, str]:
@@ -250,13 +339,28 @@ class MobileCommentAdapter(CommentApiPort):
     def _post_to_gateways(
         self, *, path: str, query: dict[str, str], body: dict[str, str]
     ) -> dict[str, Any]:
-        """POSTa no primeiro gateway que responder (mesma rota e assinatura).
+        """POSTa pela escada de gateways, repetindo-a com backoff se todos falharem.
 
-        Um corpo inválido (HTML de CDN/WAF, por exemplo) conta como falha
-        daquele gateway e a escada de fallback segue para o próximo host.
+        Só falha de transporte é repetida (``max_retries`` rodadas extras da
+        escada); erro de negócio (``result != 1``) sobe na hora.
 
         Raises:
-            KwaiTransportError: se todos os gateways falharem.
+            KwaiTransportError: se todos os gateways falharem em todas as rodadas.
+            KwaiApiError: se o Kwai sinalizar erro de negócio.
+        """
+        retrying = transient_retry(self._max_retries, on=(KwaiTransportError,))
+        return retrying(self._post_through_ladder)(path=path, query=query, body=body)
+
+    def _post_through_ladder(
+        self, *, path: str, query: dict[str, str], body: dict[str, str]
+    ) -> dict[str, Any]:
+        """Uma rodada: POSTa no primeiro gateway que responder (mesma rota e assinatura).
+
+        Um corpo inválido (HTML de CDN/WAF, por exemplo) conta como falha
+        daquele gateway e a escada segue para o próximo host.
+
+        Raises:
+            KwaiTransportError: se todos os gateways falharem nesta rodada.
             KwaiApiError: se o Kwai sinalizar erro de negócio.
         """
         self._rate.wait()
@@ -274,6 +378,7 @@ class MobileCommentAdapter(CommentApiPort):
             ensure_business_success(
                 payload,
                 default_message="erro de negócio da API móvel do Kwai",
+                source=path,
             )
             return payload
         raise KwaiTransportError(f"todos os gateways falharam: {last_error}") from last_error

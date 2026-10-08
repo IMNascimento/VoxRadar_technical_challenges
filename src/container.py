@@ -16,7 +16,7 @@ from .application.collect_comments import CollectComments
 from .application.collect_user_posts import CollectUserPosts
 from .application.search_posts import SearchPosts
 from .config import Settings
-from .infrastructure.mobile_client import MobileCommentAdapter
+from .infrastructure.mobile_client import MobileApiAdapter
 from .infrastructure.web_client import KwaiWebAdapter
 
 
@@ -69,10 +69,10 @@ def build_services(settings: Settings) -> Services:
         Os serviços prontos para uso e para ``close()``.
     """
     web_api = KwaiWebAdapter(settings)
-    comment_api = MobileCommentAdapter(settings)
+    mobile_api = MobileApiAdapter(settings)
     return Services(
         search_posts=SearchPosts(web_api),
-        user_posts=CollectUserPosts(web_api),
-        comments=CollectComments(comment_api),
-        _closeables=(web_api, comment_api),
+        user_posts=CollectUserPosts(mobile_api),
+        comments=CollectComments(mobile_api),
+        _closeables=(web_api, mobile_api),
     )

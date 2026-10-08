@@ -50,6 +50,11 @@ def test_as_int_scalar_rejeita_bool_none_e_nao_escalares() -> None:
     assert as_int_scalar({"a": 1}) is None
 
 
+@pytest.mark.parametrize("value", [float("inf"), float("-inf"), float("nan")])
+def test_as_int_scalar_rejects_non_finite_numbers(value: float) -> None:
+    assert as_int_scalar(value) is None
+
+
 # --- business_result --------------------------------------------------------
 
 _WEB_DEFAULT_MESSAGE = "erro de negócio da API do Kwai"
