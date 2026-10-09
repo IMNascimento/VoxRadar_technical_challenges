@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .entrypoints.cli import app
+from .entrypoints.cli.app import app
 
 if __name__ == "__main__":
     app()

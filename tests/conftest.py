@@ -8,14 +8,17 @@ from typing import Any
 
 import pytest
 
-from src.config import Settings
+from src.config.settings import Settings
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
 
-def load_fixture(name: str) -> Any:
-    """Carrega uma fixture JSON pelo nome de arquivo."""
-    return json.loads((FIXTURES / name).read_text(encoding="utf-8"))
+def load_fixture(name: str) -> dict[str, Any]:
+    """Carrega uma fixture JSON (objeto na raiz) pelo nome de arquivo."""
+    data = json.loads((FIXTURES / name).read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise TypeError(f"fixture {name} deve ter um objeto JSON na raiz")
+    return data
 
 
 @pytest.fixture

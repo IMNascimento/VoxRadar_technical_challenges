@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from ..exceptions import InvalidInputError, KwaiCollectorError
+from ..exceptions.domain_exceptions import InvalidInputError, InvalidValueError
 
 
 @dataclass(frozen=True)
@@ -43,7 +43,7 @@ class CommentId:
 
     def __post_init__(self) -> None:
         if not self.value or self.value != self.value.strip():
-            raise KwaiCollectorError(f"id de comentário inválido: {self.value!r}")
+            raise InvalidValueError(f"id de comentário inválido: {self.value!r}")
 
 
 @dataclass(frozen=True)
@@ -58,4 +58,4 @@ class UserId:
 
     def __post_init__(self) -> None:
         if not self.value.isdigit():
-            raise KwaiCollectorError(f"id de usuário inválido: {self.value!r}")
+            raise InvalidValueError(f"id de usuário inválido: {self.value!r}")
