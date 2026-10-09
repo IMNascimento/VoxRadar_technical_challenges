@@ -10,6 +10,7 @@ from ..shared.utils.timestamps import now_iso
 from .exceptions import reraise_with_partial
 from .models import Post
 from .ports import SearchApiPort
+from .post_ordering import order_posts, validate_sort_by
 
 logger = get_logger(COLLECTOR_LOGGER_NAME)
 
@@ -28,15 +29,18 @@ class SearchPosts:
         """
         self._api = api
 
-    def execute(self, keywords: list[str], *, limit: int = 20) -> list[Post]:
+    def execute(
+        self, keywords: list[str], *, limit: int = 20, sort_by: str | None = None
+    ) -> list[Post]:
         """Faz uma requisição por palavra-chave e deduplica o resultado.
 
         Args:
             keywords: palavras-chave da busca (ao menos uma).
             limit: teto do resultado final, após dedupe.
+            sort_by: likes, comments, shares ou views; ordena após o limite.
 
         Returns:
-            As postagens únicas, na ordem de coleta (no máximo ``limit``).
+            As postagens únicas, na ordem de coleta ou decrescente pela contagem escolhida.
 
         Raises:
             InvalidInputError: se ``keywords`` estiver vazio.
@@ -46,6 +50,7 @@ class SearchPosts:
         """
         if not keywords:
             raise InvalidInputError("informe ao menos uma palavra-chave")
+        metric = validate_sort_by(sort_by)
         count = self._request_count(limit)
         collected_at = IsoTimestamp(now_iso())
         unique: dict[str, Post] = {}
@@ -54,13 +59,13 @@ class SearchPosts:
             try:
                 batch = self._api.search_posts(keyword, count, collected_at=collected_at)
             except KwaiCollectorError as exc:
-                reraise_with_partial(exc, list(unique.values()))
+                reraise_with_partial(exc, order_posts(list(unique.values()), metric))
             for post in batch:
                 unique.setdefault(post_dedup_key(post.id, post.url), post)
             if len(unique) >= limit:
                 break
         logger.info("busca retornou %d postagens únicas", len(unique))
-        return list(unique.values())[:limit]
+        return order_posts(list(unique.values())[:limit], metric)
 
     @staticmethod
     def _request_count(limit: int) -> int:

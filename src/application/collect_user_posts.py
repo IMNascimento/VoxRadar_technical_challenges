@@ -14,6 +14,7 @@ from .exceptions import reraise_with_partial
 from .models import Post
 from .pagination import iter_pages
 from .ports import ProfileApiPort
+from .post_ordering import PostSortBy, order_posts, validate_sort_by
 
 logger = get_logger(COLLECTOR_LOGGER_NAME)
 
@@ -32,7 +33,9 @@ class CollectUserPosts:
         """
         self._api = api
 
-    def execute(self, user: str, *, limit: int | None = None) -> list[Post]:
+    def execute(
+        self, user: str, *, limit: int | None = None, sort_by: str | None = None
+    ) -> list[Post]:
         """Resolve o handle, pagina o feed e deduplica as postagens.
 
         O feed exige o id numérico, então o handle é resolvido antes; o
@@ -42,9 +45,10 @@ class CollectUserPosts:
         Args:
             user: conta do usuário (ex.: ``@perfil`` ou ``perfil``).
             limit: teto opcional de postagens únicas.
+            sort_by: likes, comments, shares ou views; ordena após o limite.
 
         Returns:
-            As postagens únicas, na ordem do feed.
+            As postagens únicas, na ordem do feed ou decrescente pela contagem escolhida.
 
         Raises:
             InvalidInputError: se a conta for inválida.
@@ -53,15 +57,21 @@ class CollectUserPosts:
             KwaiCollectorError: se a falha vier antes da primeira postagem.
         """
         handle = normalize_handle(user)
+        metric = validate_sort_by(sort_by)
         logger.info("coletando postagens de @%s", handle.value)
         collected_at = IsoTimestamp(now_iso())
         user_id = self._api.resolve_user(handle)
-        posts = self._collect_pages(user_id, collected_at=collected_at, limit=limit)
+        posts = self._collect_pages(user_id, collected_at=collected_at, limit=limit, sort_by=metric)
         logger.info("usuário @%s: %d postagens coletadas", handle.value, len(posts))
-        return posts
+        return order_posts(posts, metric)
 
     def _collect_pages(
-        self, user_id: UserId, *, collected_at: IsoTimestamp, limit: int | None
+        self,
+        user_id: UserId,
+        *,
+        collected_at: IsoTimestamp,
+        limit: int | None,
+        sort_by: PostSortBy | None,
     ) -> list[Post]:
         """Percorre as páginas do ``pcursor`` e deduplica as postagens."""
         pages = iter_pages(
@@ -83,5 +93,5 @@ class CollectUserPosts:
                 if limit is not None and len(posts) >= limit:
                     break
         except KwaiCollectorError as exc:
-            reraise_with_partial(exc, posts)
+            reraise_with_partial(exc, order_posts(posts, sort_by))
         return posts
