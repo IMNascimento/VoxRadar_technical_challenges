@@ -43,9 +43,10 @@ não pede respostas.
   verificável lendo as entidades.
 - **Abrimos mão de:** isolamento entre domínio e apresentação. Mudar o contrato
   JSON (renomear, aninhar ou omitir campo) mexe em `domain/entities`.
-- **Custo:** as entidades são registros imutáveis sem comportamento; `id` é
-  opcional porque a API pode omiti-lo, e a identidade usada na deduplicação vem
-  de `domain/services/identity.py`, não da entidade.
+- **Custo:** os campos das entidades são primitivos do schema (`str`, `int`),
+  não value objects; `id` é opcional porque a API pode omiti-lo. Comportamento
+  que não altera o contrato fica na própria entidade como propriedade ou método
+  (`dedup_key`, `Engagement.count`), porque `asdict()` só serializa campos.
 - **Risco:** um segundo formato de saída (CSV, API HTTP, outro schema) tentaria
   adaptar o domínio a ele.
 - **Revisitar quando:** surgir um segundo formato de saída, uma regra que mude o

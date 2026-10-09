@@ -35,7 +35,8 @@
 - **Implementada em:** `src/domain/value_objects/iso_timestamp.py` (formato),
   `src/infrastructure/kwai/coercion.py` (milissegundos), `SystemClock`, casos de uso e `mapping.py`.
 - **Exceções:** campos de data dos modelos são strings; construir um modelo
-  manualmente não valida calendário. `IsoTimestamp` verifica forma por regex.
+  manualmente não valida calendário. `IsoTimestamp` valida formato, calendário e
+  horário; `from_datetime` rejeita instantes sem fuso definido.
 - **Verificação:** `tests/unit/test_parsers.py`, `tests/unit/test_domain.py`.
 
 ## RN-010 — Total declarado não significa completude
