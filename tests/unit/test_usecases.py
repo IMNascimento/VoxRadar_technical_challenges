@@ -275,6 +275,20 @@ def test_limite_nao_positivo_e_rejeitado_no_comando(limit: int) -> None:
         CommentCollectionCommand.create(POST_URL, limit=limit)
 
 
+@pytest.mark.parametrize("keywords", [("",), ("   ",), ("\t\n",), ("válida", "")])
+def test_search_rejeita_palavra_chave_em_branco_antes_de_consultar_porta(
+    keywords: tuple[str, ...],
+) -> None:
+    api = FakeWebApi()
+
+    with pytest.raises(InvalidInputError, match="palavra-chave"):
+        SearchCommand(keywords)
+    with pytest.raises(InvalidInputError, match="palavra-chave"):
+        _search(api, list(keywords))
+
+    assert api.search_calls == []
+
+
 def test_search_limite_atingido_interrompe_palavras_chave_restantes() -> None:
     """Com o limite atingido na 1ª palavra-chave, a 2ª nem é requisitada."""
     api = FakeWebApi(

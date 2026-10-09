@@ -39,6 +39,9 @@ class SearchCommand:
     def __post_init__(self) -> None:
         if not self.keywords:
             raise InvalidInputError("informe ao menos uma palavra-chave")
+        for keyword in self.keywords:
+            if not keyword.strip():
+                raise InvalidInputError(f"palavra-chave em branco: {keyword!r}")
         _ensure_positive_limit(self.limit, name=_POSTS_LIMIT_NAME)
 
     @classmethod
@@ -48,7 +51,8 @@ class SearchCommand:
         """Valida os argumentos crus da busca.
 
         Raises:
-            InvalidInputError: sem palavra-chave, ``limit`` não positivo ou ``sort_by`` inválido.
+            InvalidInputError: sem palavra-chave, palavra-chave em branco,
+                ``limit`` não positivo ou ``sort_by`` inválido.
         """
         return cls(tuple(keywords), limit, validate_sort_by(sort_by))
 
