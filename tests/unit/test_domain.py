@@ -11,7 +11,6 @@ from src.domain.exceptions.domain_exceptions import InvalidInputError, InvalidVa
 from src.domain.services.identity import (
     UniqueItems,
     comment_dedup_key,
-    normalize_handle,
     post_dedup_key,
     unique_posts,
 )
@@ -23,6 +22,7 @@ from src.domain.services.post_urls import (
 )
 from src.domain.services.replies import declares_replies, replies_diverge
 from src.domain.value_objects.cursor import Cursor
+from src.domain.value_objects.identifiers import Handle
 from src.domain.value_objects.iso_timestamp import IsoTimestamp
 
 # --- pagination -------------------------------------------------------------
@@ -76,26 +76,36 @@ def test_unique_posts_usa_o_id_e_cai_para_a_url() -> None:
     assert [(p.id, p.url) for p in unique_posts().filter(posts)] == [("1", "u1"), (None, "u3")]
 
 
-def test_normalize_handle_remove_arroba_e_espacos_das_bordas() -> None:
-    assert normalize_handle("@perfil").value == "perfil"
-    assert normalize_handle(" perfil ").value == "perfil"
-    assert normalize_handle(" @a.b_c ").value == "a.b_c"
+def test_handle_parse_remove_arroba_e_espacos_das_bordas() -> None:
+    assert Handle.parse("@perfil").value == "perfil"
+    assert Handle.parse(" perfil ").value == "perfil"
+    assert Handle.parse(" @a.b_c ").value == "a.b_c"
 
 
-def test_normalize_handle_erro_para_conta_vazia() -> None:
+def test_handle_parse_erro_para_conta_vazia() -> None:
     with pytest.raises(InvalidInputError):
-        normalize_handle("   ")
+        Handle.parse("   ")
     with pytest.raises(InvalidInputError):
-        normalize_handle("@")
+        Handle.parse("@")
 
 
-def test_normalize_handle_erro_para_barra_ou_espaco_interno() -> None:
+def test_handle_parse_erro_para_barra_ou_espaco_interno() -> None:
     with pytest.raises(InvalidInputError) as barra:
-        normalize_handle("perfil/x")
+        Handle.parse("perfil/x")
     with pytest.raises(InvalidInputError) as espaco:
-        normalize_handle("perfil x")
+        Handle.parse("perfil x")
     assert "perfil/x" in str(barra.value)
     assert "perfil x" in str(espaco.value)
+
+
+@pytest.mark.parametrize("whitespace", ["\t", "\n", "\r", "\u00a0", "\u2003"])
+def test_handle_rejeita_whitespace_interno(whitespace: str) -> None:
+    value = f"perfil{whitespace}x"
+
+    with pytest.raises(InvalidInputError, match="usuário inválido"):
+        Handle(value)
+    with pytest.raises(InvalidInputError, match="usuário inválido"):
+        Handle.parse(value)
 
 
 # --- post_urls --------------------------------------------------------------

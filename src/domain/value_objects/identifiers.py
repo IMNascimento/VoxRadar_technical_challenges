@@ -9,15 +9,29 @@ from ..exceptions.domain_exceptions import InvalidInputError, InvalidValueError
 
 @dataclass(frozen=True)
 class Handle:
-    """Handle de usuário do Kwai, sem ``@`` e sem espaços nas bordas."""
+    """Handle de usuário do Kwai, sem ``@``, ``/`` ou whitespace."""
 
     value: str
 
     def __post_init__(self) -> None:
-        has_edge_space = self.value != self.value.strip()
-        has_forbidden_char = any(char in self.value for char in "@ /")
-        if not self.value or has_edge_space or has_forbidden_char:
+        has_forbidden_char = any(char.isspace() or char in "@/" for char in self.value)
+        if not self.value or has_forbidden_char:
             raise InvalidInputError(f"usuário inválido: {self.value!r}")
+
+    @classmethod
+    def parse(cls, raw: str) -> Handle:
+        """Normaliza a conta informada pelo usuário e a valida.
+
+        Args:
+            raw: conta do usuário (ex.: ``@perfil`` ou ``perfil``).
+
+        Returns:
+            O handle sem ``@`` e sem espaços nas bordas.
+
+        Raises:
+            InvalidInputError: se a conta ficar vazia ou contiver ``@``, ``/`` ou whitespace.
+        """
+        return cls(raw.strip().lstrip("@").strip())
 
 
 @dataclass(frozen=True)

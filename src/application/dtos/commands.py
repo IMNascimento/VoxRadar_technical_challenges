@@ -13,7 +13,6 @@ from dataclasses import dataclass
 
 from ...domain.enums.post_sort_by import PostSortBy
 from ...domain.exceptions.domain_exceptions import InvalidInputError
-from ...domain.services.identity import normalize_handle
 from ...domain.services.post_ordering import validate_sort_by
 from ...domain.services.post_urls import parse_post_reference
 from ...domain.value_objects.identifiers import Handle
@@ -115,7 +114,7 @@ class ProfileCollectionCommand:
             InvalidInputError: se a conta, algum limite ou ``sort_by`` forem inválidos.
         """
         return cls(
-            normalize_handle(user),
+            Handle.parse(user),
             limit,
             comments_limit,
             with_comments,

@@ -7,28 +7,8 @@ from typing import Generic, TypeVar
 
 from ..entities.comment import Comment
 from ..entities.post import Post
-from ..exceptions.domain_exceptions import InvalidInputError
-from ..value_objects.identifiers import Handle
 
 ItemT = TypeVar("ItemT")
-
-
-def normalize_handle(user: str) -> Handle:
-    """Remove ``@``/espaços das bordas e valida a conta informada.
-
-    Args:
-        user: conta do usuário (ex.: ``@perfil`` ou ``perfil``).
-
-    Returns:
-        O :class:`Handle` validado, sem ``@`` e sem espaços nas bordas.
-
-    Raises:
-        InvalidInputError: se a conta ficar vazia ou contiver ``/`` ou espaço.
-    """
-    handle = user.strip().lstrip("@").strip()
-    if not handle:
-        raise InvalidInputError("usuário inválido")
-    return Handle(handle)
 
 
 def post_dedup_key(post_id: str | None, url: str) -> str:
