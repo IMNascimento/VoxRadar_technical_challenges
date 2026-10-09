@@ -153,15 +153,15 @@ Ausente, nulo ou zero vira string vazia. Não é um índice que o cliente increm
 
 | Aspecto | API móvel | Busca web |
 |---|---|---|
-| Falha de rede/HTTP | Próximo gateway; esgotados os hosts, repete a rodada. | Retry de transporte e de `429`, `500`, `502`, `503`, `504`. |
-| Outros status de erro | Também levam ao próximo gateway e podem esgotar/replicar a escada. | Propagados sem retry adicional. |
+| Falha transitória (rede, `429`, `5xx`, corpo não-JSON) | Próximo gateway; esgotados os hosts, repete a rodada. | Retry de transporte e de `429`, `500`, `502`, `503`, `504`. |
+| Outros status de erro (ex.: `403`) | Levam ao próximo gateway; se todas as falhas forem permanentes, `KwaiTransportError` sem nova rodada. | Propagados sem retry adicional. |
 | Erro de negócio | Sem fallback e sem retry. | Sem retry. |
-| Espera de rate limit | Antes de cada rodada; não entre hosts da mesma rodada. | Antes de cada tentativa. |
+| Espera de rate limit | Antes de cada requisição, inclusive entre hosts da mesma rodada. | Antes de cada tentativa. |
 | Backoff | Exponencial: 0,5; 1; 2; 4; até teto de 8 segundos. | Mesma política. |
 
 Com `max_retries=3`, são no máximo quatro rodadas móveis × três hosts = **12
-tentativas HTTP por chamada lógica**, se todos os hosts falharem em todas as
-rodadas. A busca pode fazer até quatro tentativas no mesmo host por palavra.
+tentativas HTTP por chamada lógica**, se todos os hosts falharem de forma
+transitória em todas as rodadas. A busca pode fazer até quatro tentativas no mesmo host por palavra.
 Isso não define um prazo máximo total nem uma taxa global compartilhada.
 
 O contexto, a assinatura e o cursor são preservados em cada retry. A coleta é
