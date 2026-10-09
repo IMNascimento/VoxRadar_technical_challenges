@@ -14,12 +14,13 @@ from src.application.dtos.commands import (
     ProfileCollectionCommand,
     SearchCommand,
 )
-from src.application.exceptions import CollectionInterruptedError
+from src.application.exceptions import CollectionInterruptedError, ExternalServiceError
 from src.application.ports.clock_port import IClockPort
 from src.application.use_cases.collect_comment_versions import CollectCommentVersions
 from src.application.use_cases.collect_user_posts import CollectUserPosts
 from src.application.use_cases.search_posts import SearchPosts
 from src.config.settings import Settings
+from src.domain.exceptions.domain_exceptions import InvalidValueError
 from src.domain.value_objects.cursor import Cursor
 from src.domain.value_objects.identifiers import CommentId, Handle, PhotoId, UserId
 from src.domain.value_objects.iso_timestamp import IsoTimestamp
@@ -228,6 +229,26 @@ def test_user_resolution_rejects_malformed_list(settings: Settings) -> None:
             adapter.resolve_user(Handle("perfil"))
     finally:
         client.close()
+
+
+@pytest.mark.parametrize("user_id", ["invalid-id", "", " 123 "])
+@respx.mock
+def test_user_resolution_reports_invalid_id_as_external_failure(
+    settings: Settings, user_id: str
+) -> None:
+    respx.post(COMMENT_HOST + USER_INFO_PATH).mock(
+        return_value=httpx.Response(200, json={"result": 1, "users": [{"user_id": user_id}]})
+    )
+    client = MobileApiClient(settings)
+    adapter = MobileApiAdapter(client)
+    try:
+        with pytest.raises(UnexpectedResponseError, match="user_id") as exc:
+            adapter.resolve_user(Handle("perfil"))
+    finally:
+        client.close()
+
+    assert isinstance(exc.value, ExternalServiceError)
+    assert isinstance(exc.value.__cause__, InvalidValueError)
 
 
 @respx.mock

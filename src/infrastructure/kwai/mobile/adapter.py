@@ -37,6 +37,7 @@ import uuid
 from ....application.dtos.pages import CommentPage, ProfilePage, RootComment, SubCommentPage
 from ....application.ports.comment_api_port import ICommentApiPort
 from ....application.ports.profile_api_port import IProfileApiPort
+from ....domain.exceptions.domain_exceptions import InvalidValueError
 from ....domain.value_objects.cursor import Cursor
 from ....domain.value_objects.identifiers import CommentId, Handle, UserId
 from ....domain.value_objects.iso_timestamp import IsoTimestamp
@@ -211,7 +212,7 @@ class MobileApiAdapter(ICommentApiPort, IProfileApiPort):
 
         Raises:
             KwaiTransportError: se todos os gateways falharem no transporte.
-            UnexpectedResponseError: se o Kwai não devolver o usuário.
+            UnexpectedResponseError: se o Kwai não devolver o usuário ou devolver id inválido.
             KwaiApiError: se o Kwai sinalizar erro de negócio (``result != 1``).
         """
         body = {"userIds": f"@{handle.value}", "client_key": CLIENT_KEY, "os": "android"}
@@ -220,7 +221,13 @@ class MobileApiAdapter(ICommentApiPort, IProfileApiPort):
         first_user = users[0] if users else None
         if first_user is None or first_user.get("user_id") is None:
             raise UnexpectedResponseError(f"usuário @{handle.value} não encontrado na resposta")
-        return UserId(str(first_user["user_id"]))
+        try:
+            return UserId(str(first_user["user_id"]))
+        except InvalidValueError as exc:
+            raise UnexpectedResponseError(
+                f"{USER_INFO_PATH}: user_id inválido para @{handle.value}: "
+                f"{first_user['user_id']!r}"
+            ) from exc
 
     def fetch_profile_page(
         self,

@@ -1,19 +1,19 @@
-"""Exceções da camada de infraestrutura do coletor."""
+"""Exceções da camada de infraestrutura do coletor: falhas do serviço externo Kwai."""
 
 from __future__ import annotations
 
-from ...domain.exceptions.domain_exceptions import KwaiCollectorError
+from ...application.exceptions import ExternalServiceError
 
 
-class KwaiTransportError(KwaiCollectorError):
+class KwaiTransportError(ExternalServiceError):
     """Falha de transporte na comunicação com o Kwai."""
 
 
-class UnexpectedResponseError(KwaiCollectorError):
+class UnexpectedResponseError(ExternalServiceError):
     """Resposta do Kwai fora do formato esperado."""
 
 
-class KwaiApiError(KwaiCollectorError):
+class KwaiApiError(ExternalServiceError):
     """A API do Kwai respondeu com um código de erro de negócio.
 
     O Kwai retorna HTTP 200 mesmo em falhas, sinalizando o problema no campo

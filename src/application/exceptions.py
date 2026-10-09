@@ -1,16 +1,26 @@
-"""Exceções da camada de aplicação: coleta interrompida com resultado parcial."""
+"""Exceções da camada de aplicação: falha de serviço externo e coleta interrompida.
+
+Dentro de :class:`KwaiCollectorError` convivem duas famílias: os erros
+previsíveis do domínio (entrada ou valor inválido, laço de cursor) e
+:class:`ExternalServiceError`, levantada pelos adapters atrás das portas. A raiz
+comum mantém a política de transformar qualquer falha de coleta em resultado.
+"""
 
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import NoReturn, TypeVar
+from typing import Generic, NoReturn, TypeVar
 
 from ..domain.exceptions.domain_exceptions import KwaiCollectorError
 
 ItemT = TypeVar("ItemT")
 
 
-class CollectionInterruptedError(KwaiCollectorError):
+class ExternalServiceError(KwaiCollectorError):
+    """Falha do serviço externo atrás de uma porta: transporte, formato ou erro de negócio."""
+
+
+class CollectionInterruptedError(KwaiCollectorError, Generic[ItemT]):
     """A coleta falhou no meio, mas já havia itens coletados.
 
     A causa original fica em ``__cause__``; o que foi coletado até a falha vai em
@@ -20,7 +30,7 @@ class CollectionInterruptedError(KwaiCollectorError):
         partial: itens coletados antes da falha, na ordem de coleta.
     """
 
-    def __init__(self, cause: KwaiCollectorError, *, partial: Sequence[object]) -> None:
+    def __init__(self, cause: KwaiCollectorError, *, partial: Sequence[ItemT]) -> None:
         """Inicializa a interrupção com a causa e o que já foi coletado.
 
         Args:
@@ -28,10 +38,10 @@ class CollectionInterruptedError(KwaiCollectorError):
             partial: itens coletados até a falha (não vazio).
         """
         super().__init__(f"coleta interrompida após {len(partial)} item(ns): {cause}")
-        self.partial: tuple[object, ...] = tuple(partial)
+        self.partial: tuple[ItemT, ...] = tuple(partial)
 
 
-def reraise_with_partial(cause: KwaiCollectorError, partial: Sequence[object]) -> NoReturn:
+def reraise_with_partial(cause: KwaiCollectorError, partial: Sequence[ItemT]) -> NoReturn:
     """Relança ``cause``, preservando o que já foi coletado.
 
     Sem itens coletados não há o que preservar: a própria ``cause`` sobe.
