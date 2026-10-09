@@ -73,11 +73,16 @@ class _CommentReader:
         return roots
 
     def expand_replies(self, scope: _CommentScope, roots: list[RootComment]) -> list[Comment]:
-        """Lista plana de raízes e respostas; uma falha preserva também as raízes pendentes."""
+        """Lista plana de raízes e respostas; uma falha preserva também as raízes pendentes.
+
+        Todas as raízes são registradas antes da expansão: uma resposta com a
+        identidade de uma raiz (mesmo posterior) é descartada, e a raiz fica.
+        """
         expanded: list[Comment] = []
         unique = unique_comments()
-        for index, root in enumerate(roots):
+        for root in roots:
             unique.add(root.comment)
+        for index, root in enumerate(roots):
             expanded.append(_expanded_root(root))
             start = len(expanded)
             try:

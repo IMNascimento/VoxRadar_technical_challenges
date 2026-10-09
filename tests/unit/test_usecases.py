@@ -571,6 +571,19 @@ def test_comments_com_respostas_nao_busca_raiz_sem_respostas() -> None:
     assert comments[0].respostas_total == 0  # type: ignore[attr-defined]
 
 
+def test_comments_com_respostas_descarta_resposta_igual_a_raiz_posterior() -> None:
+    """A raiz prevalece: a mesma identidade não sai como resposta e como raiz."""
+    api = FakeCommentApi(
+        [CommentPage([_root(_comment("r1", STAMP), 1), _root(_comment("r2", STAMP))], Cursor(""))],
+        {"r1": [SubCommentPage([_sub("r2", STAMP)], Cursor(""))]},
+    )
+
+    comments = _comments(api, with_replies=True).items
+
+    assert [c.id for c in comments] == ["r1", "r2"]
+    assert comments[1].parent_id is None  # type: ignore[attr-defined]
+
+
 def test_comments_deduplica_respostas_entre_paginas() -> None:
     api = FakeCommentApi(
         [CommentPage([_root(_comment("r1", STAMP), 3)], Cursor(""))],
