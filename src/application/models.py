@@ -76,7 +76,7 @@ class Comment(BaseModel):
 class ExpandedComment(Comment):
     """Comentário com o vínculo de resposta e o total declarado de respostas.
 
-    Saída **opt-in** (``comentarios --com-respostas``): raízes e respostas vêm
+    Saída **opt-in** (``comments --with-comments-replies``): raízes e respostas vêm
     numa lista plana e cada resposta aponta para a raiz via ``parent_id``. Não
     substitui o contrato oficial :class:`Comment`, que permanece inalterado
     quando a coleta não pede respostas.
