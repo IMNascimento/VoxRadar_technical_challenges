@@ -7,21 +7,17 @@ from typing import Any
 import httpx
 
 from ....config.settings import Settings
-from ....domain.services.post_urls import BASE_URL
 from ....shared.logging.logging_config import get_logger
 from ..business_result import ensure_business_success
 from ..exceptions import KwaiTransportError
-from ..http_utils import decode_json_dict, transient_retry
+from ..http_utils import RETRYABLE_STATUS, TransientHttpError, decode_json_dict, transient_retry
 from ..ratelimit import RateLimiter
 
 logger = get_logger("http")
 
-# Erros transitórios que justificam retry.
-_RETRYABLE_STATUS = {429, 500, 502, 503, 504}
-
-
-class _TransientHttpError(Exception):
-    """Erro transitório interno, usado para acionar o retry do tenacity."""
+# Origem do site, onde a API web responde. Coincide com a base das URLs públicas
+# (``post_urls.BASE_URL``), mas é o host de transporte e pode mudar sozinho.
+WEB_ORIGIN: str = "https://www.kwai.com"
 
 
 class KwaiWebClient:
@@ -35,16 +31,16 @@ class KwaiWebClient:
         """
         self._rate = RateLimiter(settings.request_delay)
         self._post_once_with_retry = transient_retry(
-            settings.max_retries, on=(_TransientHttpError, httpx.TransportError)
+            settings.max_retries, on=(TransientHttpError, httpx.TransportError)
         )(self._post_once)
         headers = {
             "User-Agent": settings.user_agent,
             "Accept": "application/json, text/plain, */*",
-            "Origin": BASE_URL,
-            "Referer": f"{BASE_URL}/",
+            "Origin": WEB_ORIGIN,
+            "Referer": f"{WEB_ORIGIN}/",
         }
         self._client = httpx.Client(
-            base_url=BASE_URL,
+            base_url=WEB_ORIGIN,
             headers=headers,
             timeout=settings.http_timeout,
             follow_redirects=True,
@@ -75,18 +71,18 @@ class KwaiWebClient:
         """Faz o POST JSON com rate limit e retry de falhas transitórias."""
         try:
             return self._post_once_with_retry(path, payload)
-        except (httpx.HTTPError, _TransientHttpError) as exc:
+        except (httpx.HTTPError, TransientHttpError) as exc:
             raise KwaiTransportError(f"POST {path} falhou: {exc}") from exc
 
     def _post_once(self, path: str, payload: dict[str, Any]) -> httpx.Response:
-        """Uma tentativa: status transitório vira ``_TransientHttpError`` (aciona o retry)."""
+        """Uma tentativa: status transitório vira ``TransientHttpError`` (aciona o retry)."""
         self._rate.wait()
         logger.debug("POST %s", path)
         response = self._client.post(path, json=payload)
-        if response.status_code in _RETRYABLE_STATUS:
+        if response.status_code in RETRYABLE_STATUS:
             logger.warning(
                 "resposta transitória %s em %s; tentando novamente", response.status_code, path
             )
-            raise _TransientHttpError(str(response.status_code))
+            raise TransientHttpError(str(response.status_code))
         response.raise_for_status()
         return response

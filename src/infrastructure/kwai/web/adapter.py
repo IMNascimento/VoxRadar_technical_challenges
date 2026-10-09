@@ -11,11 +11,10 @@ from typing import Any
 
 from ....application.ports.search_api_port import ISearchApiPort
 from ....domain.entities.post import Post
-from ....domain.services.post_urls import BASE_URL
 from ....domain.value_objects.iso_timestamp import IsoTimestamp
 from ....shared.logging.logging_config import get_logger
 from ..mapping import parse_feeds
-from .client import KwaiWebClient
+from .client import WEB_ORIGIN, KwaiWebClient
 
 logger = get_logger("http")
 
@@ -78,5 +77,5 @@ def _build_search_payload(keyword: str, count: int) -> dict[str, Any]:
         "mobile": True,
         "pcursor": 0,
         "request_source": SEARCH_REQUEST_SOURCE,
-        "url": f"{BASE_URL}/discover",
+        "url": f"{WEB_ORIGIN}/discover",
     }

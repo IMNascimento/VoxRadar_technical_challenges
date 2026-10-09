@@ -14,6 +14,24 @@ _Operation = TypeVar("_Operation", bound=Callable[..., Any])
 
 # Valores de ``pcursor`` com que o Kwai sinaliza o fim da paginação.
 _END_CURSORS: frozenset[str] = frozenset({"no_more", "nomore", "-1", "0"})
+# Status HTTP transitórios: justificam nova tentativa; os demais 4xx/5xx não.
+RETRYABLE_STATUS: frozenset[int] = frozenset({429, 500, 502, 503, 504})
+
+
+class TransientHttpError(Exception):
+    """Falha transitória que aciona o retry; o cliente a converte antes de sair dele."""
+
+
+def is_transient_failure(exc: Exception) -> bool:
+    """Indica se a falha de uma requisição pode passar numa nova tentativa.
+
+    Transitórias: falha de transporte (conexão, timeout), status de
+    :data:`RETRYABLE_STATUS` e corpo fora do formato (ex.: HTML de CDN/WAF).
+    Status permanente (ex.: 400, 403, 404) não é repetido.
+    """
+    if isinstance(exc, httpx.HTTPStatusError):
+        return exc.response.status_code in RETRYABLE_STATUS
+    return isinstance(exc, httpx.TransportError | UnexpectedResponseError)
 
 
 def decode_json_dict(response: httpx.Response) -> dict[str, Any]:

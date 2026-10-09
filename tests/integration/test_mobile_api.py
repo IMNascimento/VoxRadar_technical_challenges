@@ -9,6 +9,7 @@ import httpx
 import pytest
 import respx
 
+from src.application.exceptions import ExternalServiceError
 from src.config.settings import Settings
 from src.domain.value_objects.cursor import Cursor
 from src.domain.value_objects.identifiers import CommentId, Handle, PhotoId, UserId
@@ -619,6 +620,29 @@ def test_falha_permanente_esgota_os_retries_e_levanta_erro_de_transporte(
 
     assert all(len(route.calls) == 3 for route in rotas)
     assert len(no_backoff) == 2
+
+
+@respx.mock
+def test_status_permanente_em_todos_os_gateways_nao_repete_a_escada(
+    retry_settings: Settings, no_backoff: list[float]
+) -> None:
+    """403 em todos os hosts percorre a escada uma vez e falha sem backoff."""
+    rotas = [
+        respx.post(host + COMMENT_PATH).mock(return_value=httpx.Response(403))
+        for host in (COMMENT_HOST, *COMMENT_FALLBACK_HOSTS)
+    ]
+    client = MobileApiClient(retry_settings)
+    adapter = MobileApiAdapter(client)
+    try:
+        with pytest.raises(KwaiTransportError) as exc:
+            _buscar_primeira_pagina(adapter)
+    finally:
+        client.close()
+
+    assert all(len(route.calls) == 1 for route in rotas)
+    assert no_backoff == []
+    assert isinstance(exc.value, ExternalServiceError)
+    assert isinstance(exc.value.__cause__, httpx.HTTPStatusError)
 
 
 @respx.mock
