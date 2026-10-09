@@ -12,8 +12,14 @@ from dataclasses import dataclass, field
 from types import TracebackType
 from typing import Protocol
 
+from ...application.ports.use_case_ports import (
+    ICollectCommentVersionsPort,
+    ICollectProfileBundlePort,
+    ISearchPostsPort,
+)
 from ...application.use_cases.collect_comment_versions import CollectCommentVersions
 from ...application.use_cases.collect_profile_bundle import CollectProfileBundle
+from ...application.use_cases.collect_user_posts import CollectUserPosts
 from ...application.use_cases.search_posts import SearchPosts
 from ...config.settings import Settings
 from ..clock.system_clock import SystemClock
@@ -39,9 +45,9 @@ class Services:
     recursos concretos ficam encapsulados em ``_closeables`` para o ``close()``.
     """
 
-    search_posts: SearchPosts
-    comment_versions: CollectCommentVersions
-    profile_bundle: CollectProfileBundle
+    search_posts: ISearchPostsPort
+    comment_versions: ICollectCommentVersionsPort
+    profile_bundle: ICollectProfileBundlePort
     _closeables: tuple[Closeable, ...] = field(repr=False)
 
     def close(self) -> None:
@@ -76,9 +82,10 @@ def build_services(settings: Settings) -> Services:
     web_api = KwaiWebAdapter(web_client)
     mobile_api = MobileApiAdapter(mobile_client)
     clock = SystemClock()
+    comment_versions = CollectCommentVersions(mobile_api, clock)
     return Services(
         search_posts=SearchPosts(web_api, clock),
-        comment_versions=CollectCommentVersions(mobile_api, clock),
-        profile_bundle=CollectProfileBundle(mobile_api, mobile_api, clock),
+        comment_versions=comment_versions,
+        profile_bundle=CollectProfileBundle(CollectUserPosts(mobile_api, clock), comment_versions),
         _closeables=(web_client, mobile_client),
     )

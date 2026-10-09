@@ -886,7 +886,11 @@ def test_bundle_isola_postagem_sem_id_como_falha_de_comentarios() -> None:
     )
     comments = FakeCommentApi([CommentPage([_root(_comment("c1", STAMP))], Cursor(""))])
     command = ProfileCollectionCommand.create("perfil", comment_versions=CommentVersions.ROOTS)
-    results = list(CollectProfileBundle(profile, comments, _Clock()).execute(command))
+    bundle = CollectProfileBundle(
+        CollectUserPosts(profile, _Clock()), CollectCommentVersions(comments, _Clock())
+    )
+
+    results = list(bundle.execute(command))
 
     assert [(r.kind, r.post is not None, r.error is not None) for r in results] == [
         ("posts", False, False),

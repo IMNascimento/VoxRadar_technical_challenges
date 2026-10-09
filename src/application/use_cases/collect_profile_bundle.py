@@ -10,28 +10,25 @@ from ...domain.exceptions.domain_exceptions import KwaiCollectorError
 from ...domain.services.post_urls import reference_post
 from ..dtos.collection_result import CollectionResult
 from ..dtos.commands import CommentCollectionCommand, ProfileCollectionCommand
-from ..ports.clock_port import IClockPort
-from ..ports.comment_api_port import ICommentApiPort
-from ..ports.profile_api_port import IProfileApiPort
-from .collect_comment_versions import CollectCommentVersions
-from .collect_user_posts import CollectUserPosts
+from ..ports.use_case_ports import (
+    ICollectCommentVersionsPort,
+    ICollectProfileBundlePort,
+    ICollectUserPostsPort,
+)
 
 
-class CollectProfileBundle:
+class CollectProfileBundle(ICollectProfileBundlePort):
     """Entrega posts antes dos comentários, permitindo persistência por unidade."""
 
-    def __init__(
-        self, profile_api: IProfileApiPort, comment_api: ICommentApiPort, clock: IClockPort
-    ) -> None:
-        """Inicializa o caso de uso.
+    def __init__(self, posts: ICollectUserPostsPort, comments: ICollectCommentVersionsPort) -> None:
+        """Inicializa o caso de uso com as coletas que ele encadeia.
 
         Args:
-            profile_api: porta de leitura do perfil na API móvel.
-            comment_api: porta de leitura dos comentários na API móvel.
-            clock: relógio do carimbo de coleta.
+            posts: coleta das postagens do perfil.
+            comments: coleta das versões de comentários de cada postagem.
         """
-        self._posts = CollectUserPosts(profile_api, clock)
-        self._comments = CollectCommentVersions(comment_api, clock)
+        self._posts = posts
+        self._comments = comments
 
     def execute(
         self, command: ProfileCollectionCommand
@@ -49,9 +46,7 @@ class CollectProfileBundle:
         for post in result.items:
             try:
                 comments = CommentCollectionCommand(
-                    reference_post(post),
-                    limit=command.comments_limit,
-                    versions=versions,
+                    reference_post(post), command.comments_limit, versions
                 )
             except KwaiCollectorError as exc:
                 yield CollectionResult("comments", (), error=exc)

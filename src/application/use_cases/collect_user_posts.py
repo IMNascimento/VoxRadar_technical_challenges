@@ -16,11 +16,12 @@ from ..dtos.commands import ProfileCollectionCommand
 from ..exceptions import reraise_with_partial
 from ..ports.clock_port import IClockPort
 from ..ports.profile_api_port import IProfileApiPort
+from ..ports.use_case_ports import ICollectUserPostsPort
 
 logger = get_logger(COLLECTOR_LOGGER_NAME)
 
 
-class CollectUserPosts:
+class CollectUserPosts(ICollectUserPostsPort):
     """Coleta as postagens de um usuário pela API móvel anônima."""
 
     def __init__(self, api: IProfileApiPort, clock: IClockPort) -> None:

@@ -12,11 +12,12 @@ from ..dtos.commands import SearchCommand
 from ..exceptions import reraise_with_partial
 from ..ports.clock_port import IClockPort
 from ..ports.search_api_port import ISearchApiPort
+from ..ports.use_case_ports import ISearchPostsPort
 
 logger = get_logger(COLLECTOR_LOGGER_NAME)
 
 
-class SearchPosts:
+class SearchPosts(ISearchPostsPort):
     """Coleta postagens relacionadas a uma ou mais palavras-chave."""
 
     def __init__(self, api: ISearchApiPort, clock: IClockPort) -> None:

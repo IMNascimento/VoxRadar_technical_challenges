@@ -21,6 +21,7 @@ from ..dtos.pages import RootComment
 from ..exceptions import reraise_with_partial
 from ..ports.clock_port import IClockPort
 from ..ports.comment_api_port import ICommentApiPort
+from ..ports.use_case_ports import ICollectCommentVersionsPort
 
 logger = get_logger(COLLECTOR_LOGGER_NAME)
 
@@ -143,7 +144,7 @@ class _CommentReader:
             logger.warning("respostas da raiz %s truncadas: %s", root_id, exc)
 
 
-class CollectCommentVersions:
+class CollectCommentVersions(ICollectCommentVersionsPort):
     """Entrega versões independentes, sem buscar raízes novamente para expandir."""
 
     def __init__(self, api: ICommentApiPort, clock: IClockPort) -> None:

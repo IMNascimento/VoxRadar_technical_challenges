@@ -1,1 +1,1 @@
-"""Portas de saída da aplicação: contratos que a infraestrutura implementa."""
+"""Portas de entrada dos casos de uso e de saída para a infraestrutura."""
