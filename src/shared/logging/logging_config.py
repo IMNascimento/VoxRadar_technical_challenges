@@ -1,4 +1,4 @@
-"""Configuração central de logging (níveis info/erro, sem ``print``)."""
+"""Configuração central de logging: formato, nível e loggers no namespace ``src``."""
 
 from __future__ import annotations
 

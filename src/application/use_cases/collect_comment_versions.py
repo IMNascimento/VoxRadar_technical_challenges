@@ -35,7 +35,7 @@ class _CommentScope:
 
 
 def _expanded_root(root: RootComment) -> ExpandedComment:
-    """Raiz no formato expandido, com o total de respostas que a API declara."""
+    """Converte a raiz para o formato expandido, com o total de respostas declarado."""
     return ExpandedComment.from_comment(root.comment, respostas_total=root.declared_replies)
 
 
@@ -51,7 +51,7 @@ def _warn_reply_count(root: RootComment, collected: int) -> None:
 
 
 class _CommentReader:
-    """Mecânica de raízes e expansão, sem escolher versões de saída."""
+    """Lê raízes e expande respostas pela porta de comentários, sem escolher versões."""
 
     def __init__(self, api: ICommentApiPort) -> None:
         """Inicializa o leitor.
@@ -62,7 +62,7 @@ class _CommentReader:
         self._api = api
 
     def collect_roots(self, scope: _CommentScope, *, limit: int | None) -> list[RootComment]:
-        """Raízes únicas até o ``limit`` cru; uma falha preserva as já coletadas."""
+        """Coleta as raízes únicas até o ``limit`` cru; uma falha preserva as já coletadas."""
         roots: list[RootComment] = []
         unique = unique_comments()
         try:
@@ -74,7 +74,7 @@ class _CommentReader:
         return roots
 
     def expand_replies(self, scope: _CommentScope, roots: list[RootComment]) -> list[Comment]:
-        """Lista plana de raízes e respostas; uma falha preserva também as raízes pendentes.
+        """Monta a lista plana de raízes e respostas; uma falha preserva as raízes pendentes.
 
         Todas as raízes são registradas antes da expansão: uma resposta com a
         identidade de uma raiz (mesmo posterior) é descartada, e a raiz fica.
@@ -96,7 +96,7 @@ class _CommentReader:
         return expanded
 
     def _iter_raw_roots(self, scope: _CommentScope, *, limit: int | None) -> Iterator[RootComment]:
-        """Itens crus de raiz, na ordem da API; para ao atingir o ``limit`` cru."""
+        """Itera as raízes cruas na ordem da API, parando ao atingir o ``limit`` cru."""
         pages = iter_pages(
             lambda cursor: self._api.fetch_page(
                 scope.post, cursor=cursor, collected_at=scope.collected_at
@@ -112,10 +112,11 @@ class _CommentReader:
     def _collect_replies(
         self, scope: _CommentScope, root: RootComment, unique: UniqueItems[Comment]
     ) -> Iterator[Comment]:
-        """Respostas de uma raiz, uma a uma (o que já saiu não se perde numa falha).
+        """Itera as respostas inéditas de uma raiz (o que já saiu não se perde numa falha).
 
         Sem id não há como consultar a sublista; sem respostas declaradas não há
-        o que expandir.
+        o que expandir. Um cursor repetido na sublista trunca as respostas dessa
+        raiz com aviso no log, sem falhar a coleta.
         """
         root_id = root.comment.id
         if root_id is None or not declares_replies(root.declared_replies):
@@ -145,7 +146,10 @@ class _CommentReader:
 
 
 class CollectCommentVersions(ICollectCommentVersionsPort):
-    """Entrega versões independentes, sem buscar raízes novamente para expandir."""
+    """Coleta as versões de comentários de uma postagem: só raízes, com respostas ou ambas.
+
+    As raízes são buscadas uma única vez e reaproveitadas na expansão das respostas.
+    """
 
     def __init__(self, api: ICommentApiPort, clock: IClockPort) -> None:
         """Inicializa o caso de uso.

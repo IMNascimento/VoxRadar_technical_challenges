@@ -1,4 +1,8 @@
-"""Decisão pura de continuação, fim e repetição de cursor."""
+"""Regra pura de paginação: decide se a lista continua, termina ou entrou em laço.
+
+Não busca páginas nem guarda estado; quem itera é
+:func:`src.application.pagination.iter_pages`.
+"""
 
 from __future__ import annotations
 

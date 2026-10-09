@@ -20,7 +20,12 @@ class IProfileApiPort(ABC):
 
     @abstractmethod
     def resolve_user(self, handle: Handle) -> UserId:
-        """Resolve o handle para o id numérico usado pelo feed."""
+        """Resolve o handle para o id numérico usado pelo feed.
+
+        Raises:
+            ExternalServiceError: se o serviço externo falhar no transporte, no
+                formato da resposta ou com erro de negócio.
+        """
 
     @abstractmethod
     def fetch_profile_page(
@@ -30,4 +35,9 @@ class IProfileApiPort(ABC):
         cursor: Cursor,
         collected_at: IsoTimestamp,
     ) -> ProfilePage:
-        """Busca uma página do feed do usuário."""
+        """Busca uma página do feed do usuário.
+
+        Raises:
+            ExternalServiceError: se o serviço externo falhar no transporte, no
+                formato da resposta ou com erro de negócio.
+        """

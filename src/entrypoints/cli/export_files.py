@@ -1,4 +1,9 @@
-"""Layout e escrita JSON dos comandos de exportação por diretório."""
+"""Layout de diretórios e escrita atômica dos JSON exportados pela CLI.
+
+Cada execução ganha uma pasta própria em ``<base>/<dono>/<carimbo UTC>-<sufixo>``.
+Postagens vão em ``posts.json``; comentários em ``<kind>/<photo_id>.json``. Uma
+etapa que falhou com parcial grava ``.partial.json``; sem itens, não grava nada.
+"""
 
 from __future__ import annotations
 
@@ -27,6 +32,7 @@ _RESERVED_NAMES = {
 
 
 def _safe_name(value: str) -> str:
+    """Converte o valor em nome de arquivo seguro, com hash quando o nome muda."""
     name = re.sub(r"[^a-zA-Z0-9_.-]", "_", value).strip(".")[:80]
     if not name or name.split(".")[0].upper() in _RESERVED_NAMES:
         name = f"_{name}"
@@ -36,7 +42,16 @@ def _safe_name(value: str) -> str:
 
 
 def create_export_directory(base: Path, owner: str) -> Path:
-    """Cria execução exclusiva e segura para nomes de arquivo no Windows."""
+    """Cria o diretório exclusivo de uma execução, com nomes seguros no Windows.
+
+    Args:
+        base: diretório base da exportação.
+        owner: dono da coleta (handle, ``search`` ou ``post-<id>``); caracteres
+            inválidos e nomes reservados do Windows são neutralizados.
+
+    Returns:
+        O caminho do diretório criado para esta execução.
+    """
     parent = base / _safe_name(owner)
     parent.mkdir(parents=True, exist_ok=True)
     run_id = datetime.now(UTC).strftime("%Y%m%dT%H%M%S%fZ") + "-" + uuid4().hex[:8]
@@ -46,7 +61,15 @@ def create_export_directory(base: Path, owner: str) -> Path:
 
 
 def write_export(run: Path, result: CollectionResult[Post | Comment]) -> Path | None:
-    """Publica um JSON inteiro por rename; não cria arquivo para falha sem itens."""
+    """Grava os itens de um resultado em JSON de forma atômica (temporário + rename).
+
+    Args:
+        run: diretório da execução.
+        result: resultado a gravar; com ``error``, o parcial vai em ``.partial.json``.
+
+    Returns:
+        O caminho gravado, ou ``None`` quando a etapa falhou sem itens.
+    """
     if result.error is not None and not result.items:
         return None
     stem = "posts" if result.post is None else result.post.photo_id.value

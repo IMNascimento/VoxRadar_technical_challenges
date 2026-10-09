@@ -9,8 +9,8 @@ from ...domain.value_objects.iso_timestamp import IsoTimestamp
 
 
 class SystemClock(IClockPort):
-    """Instante atual do sistema, em ISO-8601 UTC."""
+    """Relógio real: fornece o instante atual do sistema como carimbo ISO-8601 UTC."""
 
     def now(self) -> IsoTimestamp:
-        """Carimbo de coleta do instante atual."""
+        """Retorna o carimbo de coleta do instante atual."""
         return IsoTimestamp.from_datetime(datetime.now(tz=UTC))

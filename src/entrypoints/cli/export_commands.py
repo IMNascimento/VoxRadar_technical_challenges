@@ -1,4 +1,10 @@
-"""Comandos ingleses com exportação JSON organizada por diretório."""
+"""Comandos da CLI (``search``, ``profile`` e ``comments``) que coletam e exportam JSON.
+
+Cada comando valida a entrada antes de abrir rede (exit ``2`` se inválida), cria
+um diretório de execução e grava cada resultado assim que ele chega; sai com
+exit ``1`` se alguma etapa falhar ou não puder ser gravada. As docstrings dos
+comandos ficam em inglês porque viram o texto do ``--help``.
+"""
 
 from __future__ import annotations
 
@@ -61,6 +67,7 @@ def _source(result: CollectionResult[Post | Comment]) -> str:
 
 
 def _save_result(run: Path, result: CollectionResult[Post | Comment]) -> bool:
+    """Grava o resultado e indica se a etapa terminou sem falha de coleta ou de escrita."""
     if result.error is not None:
         logger.error("collection failed (%s, %s): %s", result.stage, _source(result), result.error)
     try:
@@ -72,7 +79,11 @@ def _save_result(run: Path, result: CollectionResult[Post | Comment]) -> bool:
 
 
 def _build_command(build: Callable[[], CommandT]) -> CommandT:
-    """Valida a entrada antes de criar diretórios ou abrir sessões HTTP."""
+    """Monta o comando, validando a entrada antes de criar diretórios ou abrir sessões HTTP.
+
+    Raises:
+        typer.Exit: com código ``2`` se a entrada for inválida.
+    """
     try:
         return build()
     except InvalidInputError as exc:
@@ -81,6 +92,15 @@ def _build_command(build: Callable[[], CommandT]) -> CommandT:
 
 
 def _run_exports(owner: str, produce: Callable[[Services], Results], out: Path) -> None:
+    """Executa a coleta e grava cada resultado no diretório de execução.
+
+    Todos os resultados são gravados antes de sair. Termina com exit ``1`` se
+    algum falhou ou não pôde ser gravado, ou se a configuração, a coleta ou o
+    encerramento dos serviços lançarem erro de coleta, de validação ou de I/O.
+
+    Raises:
+        typer.Exit: com código ``1`` em qualquer dessas falhas.
+    """
     has_failed = False
     try:
         settings = Settings()
@@ -98,7 +118,7 @@ def _run_exports(owner: str, produce: Callable[[Services], Results], out: Path) 
 
 
 def _owner_from_post(post: PostReference) -> str:
-    """Dono da postagem extraído da URL; sem ele, ``post-<id>``."""
+    """Extrai o dono da postagem da URL; sem ele, usa ``post-<id>``."""
     return post.owner or f"post-{post.photo_id.value}"
 
 

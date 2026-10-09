@@ -1,4 +1,4 @@
-"""Interface de linha de comando do coletor (Typer)."""
+"""Aplicação Typer raiz da CLI: registra os comandos de exportação e o texto de ajuda."""
 
 from __future__ import annotations
 

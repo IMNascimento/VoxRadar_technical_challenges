@@ -60,7 +60,7 @@ def reraise_with_partial(cause: KwaiCollectorError, partial: Sequence[ItemT]) ->
 
 
 def partial_items(exc: KwaiCollectorError, item_type: type[ItemT]) -> tuple[ItemT, ...]:
-    """Itens do tipo pedido que a falha carrega: o parcial de uma interrupção ou nenhum.
+    """Extrai da falha os itens do tipo pedido: o parcial de uma interrupção ou nenhum.
 
     Args:
         exc: falha de coleta capturada.

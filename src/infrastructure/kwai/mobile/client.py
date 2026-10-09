@@ -62,10 +62,21 @@ class MobileApiClient:
         self._client.close()
 
     def post(self, path: str, *, query: dict[str, str], body: dict[str, str]) -> dict[str, Any]:
-        """Assina query e corpo e POSTa pela escada, repetindo-a com backoff se todos falharem.
+        """Assina query e corpo e envia o POST pela escada de gateways.
 
-        Só falha transitória é repetida (``max_retries`` rodadas extras da
-        escada); status permanente e erro de negócio (``result != 1``) sobem na hora.
+        Um status de erro ou um corpo inválido em um gateway passa para o próximo.
+        Se todos falharem e ao menos uma falha for transitória, a escada inteira é
+        repetida com backoff (até ``max_retries`` rodadas extras); se todas forem
+        permanentes (ex.: 403), não há nova rodada. Erro de negócio
+        (``result != 1``) sobe na hora, sem trocar de gateway.
+
+        Args:
+            path: rota da API móvel (ex.: ``/rest/o/comment/list/v2``).
+            query: parâmetros de query, incluídos na assinatura.
+            body: campos do corpo, incluídos na assinatura.
+
+        Returns:
+            O corpo JSON da resposta bem-sucedida.
 
         Raises:
             KwaiTransportError: se todos os gateways falharem (após as rodadas,

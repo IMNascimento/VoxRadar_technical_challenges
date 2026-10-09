@@ -4,7 +4,7 @@ Estes valores valem **juntos**. O sal do ``sig`` só foi provado para a versão 
 app abaixo (Kwai Lite): assinar com outra versão (medido: ``appver`` 13.7) é
 rejeitado com ``result: 50`` (*Failed to verify the signature*). Ao atualizar
 ``APP_VERSION``, capture um request real do app, revalide o sal e troque o vetor
-de ``tests/test_mobile_api.py`` — o teste de versão falha até isso acontecer.
+de ``tests/integration/test_mobile_api.py`` — o teste de versão falha até isso acontecer.
 """
 
 from __future__ import annotations

@@ -16,4 +16,8 @@ class ISearchApiPort(ABC):
         """Busca até ``limit`` postagens de uma palavra-chave (uma requisição por chamada).
 
         O adapter pode devolver menos que ``limit`` quando o endpoint limitar o lote.
+
+        Raises:
+            ExternalServiceError: se o serviço externo falhar no transporte, no
+                formato da resposta ou com erro de negócio.
         """

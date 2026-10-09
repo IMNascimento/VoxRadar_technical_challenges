@@ -1,4 +1,4 @@
-"""Coleta sequencial de posts e versões de comentários, isolada por postagem."""
+"""Caso de uso: postagens de um perfil seguidas das versões de comentários de cada uma."""
 
 from __future__ import annotations
 
@@ -18,7 +18,11 @@ from ..ports.use_case_ports import (
 
 
 class CollectProfileBundle(ICollectProfileBundlePort):
-    """Entrega posts antes dos comentários, permitindo persistência por unidade."""
+    """Coleta as postagens de um perfil e, opcionalmente, os comentários de cada uma.
+
+    Encadeia :class:`ICollectUserPostsPort` e :class:`ICollectCommentVersionsPort`;
+    cada unidade é entregue assim que fica pronta, permitindo persisti-la em seguida.
+    """
 
     def __init__(self, posts: ICollectUserPostsPort, comments: ICollectCommentVersionsPort) -> None:
         """Inicializa o caso de uso com as coletas que ele encadeia.
@@ -33,10 +37,12 @@ class CollectProfileBundle(ICollectProfileBundlePort):
     def execute(
         self, command: ProfileCollectionCommand
     ) -> Iterator[CollectionResult[Post | Comment]]:
-        """Continua outras postagens quando uma coleta de comentários falha.
+        """Entrega o resultado das postagens e depois os comentários de cada uma.
 
-        A entrada chega validada no comando: durante a coleta, falhas viram
-        resultados com ``error`` em vez de exceções.
+        Falhas viram resultados com ``error`` em vez de exceções. Se as postagens
+        falharem com parcial, os comentários são coletados para as postagens
+        parciais; a falha nos comentários de uma postagem não interrompe as demais.
+        Postagem sem id numérico gera um resultado ``comments`` com o erro.
         """
         result = self._collect_posts(command)
         yield result
@@ -54,6 +60,7 @@ class CollectProfileBundle(ICollectProfileBundlePort):
             yield from self._comments.execute(comments)
 
     def _collect_posts(self, command: ProfileCollectionCommand) -> CollectionResult[Post]:
+        """Converte a coleta de postagens em resultado, preservando o parcial de uma falha."""
         try:
             posts = self._posts.execute(command)
         except KwaiCollectorError as exc:

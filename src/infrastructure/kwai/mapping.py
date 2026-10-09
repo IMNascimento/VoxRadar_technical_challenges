@@ -114,6 +114,9 @@ def parse_feeds(feeds: Any, *, collected_at: str) -> list[Post]:
 
     Returns:
         As postagens mapeadas, na ordem do lote.
+
+    Raises:
+        UnexpectedResponseError: se ``feeds`` não for uma lista JSON.
     """
     if feeds is None:
         return []

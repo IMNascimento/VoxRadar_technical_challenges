@@ -25,9 +25,10 @@ class TransientHttpError(Exception):
 def is_transient_failure(exc: Exception) -> bool:
     """Indica se a falha de uma requisição pode passar numa nova tentativa.
 
-    Transitórias: falha de transporte (conexão, timeout), status de
-    :data:`RETRYABLE_STATUS` e corpo fora do formato (ex.: HTML de CDN/WAF).
-    Status permanente (ex.: 400, 403, 404) não é repetido.
+    Usada pela escada de gateways da API móvel. Transitórias: falha de transporte
+    (conexão, timeout), status de :data:`RETRYABLE_STATUS` e corpo fora do formato
+    (ex.: HTML de CDN/WAF). Status permanente (ex.: 400, 403, 404) não é repetido.
+    O cliente web aplica a própria regra e não repete corpo fora do formato.
     """
     if isinstance(exc, httpx.HTTPStatusError):
         return exc.response.status_code in RETRYABLE_STATUS

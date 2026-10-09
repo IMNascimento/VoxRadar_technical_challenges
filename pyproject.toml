@@ -30,8 +30,14 @@ target-version = "py311"
 extend-exclude = ["*.bak-*"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "N", "UP", "B", "SIM", "ANN"]
-ignore = ["E501", "ANN401", "ANN101", "ANN102"]
+select = ["E", "F", "I", "N", "UP", "B", "SIM", "ANN", "D"]
+ignore = ["E501", "ANN401", "ANN101", "ANN102", "D105"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["src"]

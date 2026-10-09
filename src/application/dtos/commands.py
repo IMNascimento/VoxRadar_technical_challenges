@@ -60,7 +60,14 @@ class CommentVersions(StrEnum):
 
 @dataclass(frozen=True)
 class SearchCommand:
-    """Busca por palavras-chave, com limite total e ordenação opcional."""
+    """Comando de busca por palavras-chave, já validado.
+
+    Attributes:
+        keywords: palavras-chave, consultadas em ordem até atingir ``limit``.
+        limit: teto de postagens únicas no resultado final.
+        sort_by: métrica da ordenação decrescente, aplicada após ``limit``;
+            ``None`` mantém a ordem de coleta.
+    """
 
     keywords: tuple[str, ...]
     limit: int = 20
@@ -89,7 +96,14 @@ class SearchCommand:
 
 @dataclass(frozen=True)
 class CommentCollectionCommand:
-    """Versões de comentários pedidas para uma postagem."""
+    """Comando de coleta das versões de comentários de uma postagem, já validado.
+
+    Attributes:
+        post: postagem alvo, referenciada pelo id extraído da URL.
+        limit: teto de raízes cruas (antes da deduplicação); respostas não contam.
+            ``None`` coleta todas.
+        versions: versões de comentários a entregar.
+    """
 
     post: PostReference
     limit: int | None = None
@@ -116,9 +130,15 @@ class CommentCollectionCommand:
 
 @dataclass(frozen=True)
 class ProfileCollectionCommand:
-    """Postagens de um perfil e, opcionalmente, versões de comentários por postagem.
+    """Comando de coleta das postagens de um perfil e, opcionalmente, dos comentários.
 
-    ``comment_versions`` ``None`` dispensa a coleta de comentários.
+    Attributes:
+        handle: conta normalizada, sem ``@``.
+        limit: teto de postagens únicas; ``None`` coleta todas.
+        comments_limit: teto de raízes cruas por postagem; ``None`` coleta todas.
+        comment_versions: versões de comentários por postagem; ``None`` dispensa
+            a coleta de comentários.
+        sort_by: métrica da ordenação decrescente, aplicada após ``limit``.
     """
 
     handle: Handle

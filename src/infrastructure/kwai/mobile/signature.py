@@ -1,18 +1,15 @@
 """Assinatura ``sig`` da API móvel anônima do Kwai (comentários e perfil).
 
-Descoberta (09/2026, validada contra o app real): as rotas ``/rest/o/...`` do app
-aceitam uma requisição **anônima** (sem login, sem cookies) assinada **apenas
-com o ``sig``**:
+As rotas ``/rest/o/...`` aceitam requisição anônima (sem login nem cookies)
+assinada só com o ``sig``, que cobre query e corpo::
 
     canonical = "".join("k=v" para chaves ordenadas, SEM separador,
                         valores já decodificados, exceto ``sig`` e os
                         tokens derivados ``__NS_sig3``/``__NStokensig``)
     sig       = MD5(canonical + SIG_SALT)   # hex minúsculo
 
-O ``__NS_sig3`` **não** é necessário para estas rotas (verificado: sem ele a
-resposta é ``result: 1`` com os dados) e, quando presente, **não** entra no
-preimage do ``sig`` — o app o adiciona depois da assinatura. A assinatura cobre
-os parâmetros da *query* **e** do corpo.
+Os tokens derivados são acrescentados pelo app depois de assinar e não são
+necessários nestas rotas. Detalhes e evidências em ``docs/internals/signature.md``.
 """
 
 from __future__ import annotations

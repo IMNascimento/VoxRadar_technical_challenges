@@ -1,10 +1,10 @@
-"""Exceções de domínio do coletor."""
+"""Exceções de domínio do coletor: a raiz comum e os erros de entrada, valor e paginação."""
 
 from __future__ import annotations
 
 
 class KwaiCollectorError(Exception):
-    """Erro base do coletor."""
+    """Raiz das falhas esperadas da coleta; o que não herda dela é erro inesperado."""
 
 
 class InvalidInputError(KwaiCollectorError):

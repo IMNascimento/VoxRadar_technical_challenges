@@ -21,12 +21,12 @@ _PHOTO_ID_RE = re.compile(r"/(?:video|photo)/(\d+)")
 
 
 def profile_url(handle: str) -> str:
-    """URL canônica de um perfil: ``/@{handle}``."""
+    """Monta a URL canônica de um perfil: ``/@{handle}``."""
     return f"{BASE_URL}/@{handle}"
 
 
 def post_url(handle: str, photo_id: str) -> str:
-    """URL canônica de uma postagem: ``/@{handle}/video/{photo_id}``."""
+    """Monta a URL canônica de uma postagem: ``/@{handle}/video/{photo_id}``."""
     return f"{profile_url(handle)}/video/{photo_id}"
 
 
@@ -61,7 +61,7 @@ def parse_post_reference(url: str) -> PostReference:
 
 
 def reference_post(post: Post) -> PostReference:
-    """Referencia uma postagem já coletada pelo id dela, sem reinterpretar a URL.
+    """Referencia uma postagem já coletada pelo id dela, sem reextrair o id da URL.
 
     Raises:
         InvalidValueError: se a postagem vier da API sem id numérico.
@@ -72,7 +72,7 @@ def reference_post(post: Post) -> PostReference:
 
 
 def _extract_owner(url: str) -> str | None:
-    """Handle do segmento ``@perfil`` da URL, quando houver."""
+    """Extrai o handle do segmento ``@perfil`` da URL, quando houver."""
     for part in urlsplit(url).path.split("/"):
         if part.startswith("@") and len(part) > 1:
             return unquote(part[1:])

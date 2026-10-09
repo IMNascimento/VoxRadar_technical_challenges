@@ -36,15 +36,15 @@ class UniqueItems(Generic[ItemT]):
         return True
 
     def filter(self, items: Iterable[ItemT]) -> Iterator[ItemT]:
-        """Itens inéditos, na ordem de entrada, registrando cada um ao passar."""
+        """Filtra os itens inéditos, na ordem de entrada, registrando cada um ao passar."""
         return (item for item in items if self.add(item))
 
 
 def unique_posts() -> UniqueItems[Post]:
-    """Deduplicação de postagens por :attr:`Post.dedup_key`."""
+    """Cria o deduplicador de postagens por :attr:`Post.dedup_key`."""
     return UniqueItems(lambda post: post.dedup_key)
 
 
 def unique_comments() -> UniqueItems[Comment]:
-    """Deduplicação de comentários por :attr:`Comment.dedup_key`."""
+    """Cria o deduplicador de comentários por :attr:`Comment.dedup_key`."""
     return UniqueItems(lambda comment: comment.dedup_key)

@@ -26,7 +26,12 @@ class ICommentApiPort(ABC):
         cursor: Cursor,
         collected_at: IsoTimestamp,
     ) -> CommentPage:
-        """Busca uma página de comentários de raiz da postagem."""
+        """Busca uma página de comentários de raiz da postagem.
+
+        Raises:
+            ExternalServiceError: se o serviço externo falhar no transporte, no
+                formato da resposta ou com erro de negócio.
+        """
 
     @abstractmethod
     def fetch_sub_page(
@@ -37,4 +42,9 @@ class ICommentApiPort(ABC):
         cursor: Cursor,
         collected_at: IsoTimestamp,
     ) -> SubCommentPage:
-        """Busca uma página de respostas de um comentário raiz."""
+        """Busca uma página de respostas de um comentário raiz.
+
+        Raises:
+            ExternalServiceError: se o serviço externo falhar no transporte, no
+                formato da resposta ou com erro de negócio.
+        """

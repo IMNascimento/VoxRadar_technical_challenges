@@ -26,7 +26,9 @@ _FailedT = TypeVar("_FailedT", bound=Post | Comment)
 
 @dataclass(frozen=True)
 class CollectionResult(Generic[ItemT]):
-    """Itens e falha explícita da etapa; vazio sem erro é sucesso válido.
+    """Resultado de uma etapa de coleta: os itens obtidos e a falha, se houver.
+
+    Vazio sem ``error`` é sucesso válido; com ``error``, ``items`` é o parcial.
 
     Attributes:
         kind: tipo de coleta: postagens, raízes de comentários ou raízes com respostas.
@@ -59,5 +61,5 @@ class CollectionResult(Generic[ItemT]):
         *,
         post: PostReference | None = None,
     ) -> CollectionResult[_FailedT]:
-        """Resultado de uma etapa que falhou, com o parcial que a falha carregar."""
+        """Monta o resultado de uma etapa que falhou, com o parcial que a falha carregar."""
         return CollectionResult(kind, partial_items(exc, item_type), post=post, error=exc)

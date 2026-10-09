@@ -31,7 +31,11 @@ class SearchPosts(ISearchPostsPort):
         self._clock = clock
 
     def execute(self, command: SearchCommand) -> CollectionResult[Post]:
-        """Faz uma requisição por palavra-chave e deduplica o resultado.
+        """Busca as palavras-chave em ordem e deduplica o resultado.
+
+        Faz uma requisição por palavra-chave e para assim que o total de
+        postagens únicas atinge ``limit``: as palavras-chave restantes não são
+        consultadas.
 
         Args:
             command: palavras-chave, teto do resultado final (após dedupe) e

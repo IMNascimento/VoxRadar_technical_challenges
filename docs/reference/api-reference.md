@@ -116,7 +116,7 @@ a causa. Os modelos e métricas não são modificados.
 ### Resultados
 
 `CollectionResult[T]` contém `kind`, `items: tuple[T, ...]`, `post` e `error`.
-`post` é um `PostReference` (`photo_id` e `url`) e é obrigatório quando `kind`
+`post` é um `PostReference` (`photo_id`, `url` e `owner`) e é obrigatório quando `kind`
 não é `posts`, exceto em resultado de falha cuja postagem não pôde ser
 identificada (senão, `ValueError`). `CollectionResult.failed(kind, exc, item_type)`
 monta o resultado de falha com o parcial tipado. `stage` é derivado de `kind` (`posts`→`posts`, `comments`→`roots`,

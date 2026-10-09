@@ -10,7 +10,7 @@ from ..domain.value_objects.cursor import Cursor
 
 
 class Page(Protocol):
-    """Define a continuação necessária para coordenar uma lista paginada."""
+    """Página de uma lista paginada, vista apenas pelo cursor de continuação que carrega."""
 
     @property
     def next_cursor(self) -> Cursor:

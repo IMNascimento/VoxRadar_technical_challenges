@@ -7,7 +7,7 @@ from dataclasses import dataclass, field, fields
 
 @dataclass(frozen=True, kw_only=True)
 class CommentAuthor:
-    """Autor de um comentário."""
+    """Autor de um comentário, como a API informa; campos ausentes ficam ``None``."""
 
     usuario: str | None = None
     id: str | None = None
@@ -15,11 +15,10 @@ class CommentAuthor:
 
 @dataclass(frozen=True, kw_only=True)
 class Comment:
-    """Um comentário de uma postagem. Campos obrigatórios: ``postagem_url``,
-    ``texto``, ``coletado_em``.
+    """Comentário de uma postagem, no formato do schema ``Comentario``.
 
-    Propriedades não entram em ``dataclasses.asdict``: ``dedup_key`` não altera o
-    contrato de saída.
+    Campos obrigatórios: ``postagem_url``, ``texto`` e ``coletado_em``. Propriedades
+    não entram em ``dataclasses.asdict``: ``dedup_key`` não altera o contrato de saída.
     """
 
     id: str | None = None

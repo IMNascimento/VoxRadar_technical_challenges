@@ -26,7 +26,7 @@ SEARCH_MAX_COUNT = 50
 
 
 class KwaiWebAdapter(ISearchApiPort):
-    """Busca por palavra-chave na API web do Kwai."""
+    """Implementa :class:`ISearchApiPort` sobre o endpoint de busca da API web do Kwai."""
 
     def __init__(self, client: KwaiWebClient) -> None:
         """Inicializa o adapter.
@@ -50,7 +50,7 @@ class KwaiWebAdapter(ISearchApiPort):
 
         Raises:
             KwaiTransportError: se a requisição falhar no transporte/status.
-            UnexpectedResponseError: se o corpo não for um objeto JSON.
+            UnexpectedResponseError: se o corpo não for um objeto JSON ou ``feeds`` não for uma lista.
             KwaiApiError: se o Kwai sinalizar erro de negócio.
         """
         payload = _build_search_payload(keyword, _request_count(limit))
@@ -59,7 +59,7 @@ class KwaiWebAdapter(ISearchApiPort):
 
 
 def _request_count(limit: int) -> int:
-    """Itens pedidos ao endpoint: o ``limit``, sem passar do lote máximo da busca."""
+    """Calcula os itens pedidos ao endpoint: o ``limit``, até o lote máximo da busca."""
     if limit > SEARCH_MAX_COUNT:
         logger.warning(
             "endpoint de busca limita o lote a %d itens por palavra-chave; usando count=%d",

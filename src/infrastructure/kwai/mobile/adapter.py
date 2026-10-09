@@ -1,32 +1,20 @@
-"""Adapter da API MÓVEL anônima do Kwai (comentários e perfil) — 100% Python.
+"""Adapter da API móvel anônima do Kwai: rotas de comentários e de perfil.
 
-Descoberta (09/2026, validada contra o app real):
-    ``POST /rest/o/comment/list/v2`` (API móvel) aceita uma requisição
-    **anônima** (sem login, sem cookies) assinada **apenas com o ``sig``** — a
-    fórmula e o preimage estão em :mod:`src.infrastructure.kwai.mobile.signature`.
+Implementa :class:`ICommentApiPort` e :class:`IProfileApiPort`. Aqui fica o que é
+de cada rota: caminho, contexto (query), corpo e tamanho de página. A sessão, a
+assinatura ``sig`` e a escada de gateways ficam no :class:`MobileApiClient`.
 
-    O ``__NS_sig3`` **não** é necessário para estes endpoints (verificado: sem
-    ele a resposta é ``result: 1`` com os dados) e, quando presente na
-    requisição do app, **não** entra no preimage do ``sig`` — o app o adiciona
-    depois da assinatura. A assinatura cobre os parâmetros da *query* **e** do
-    corpo.
+- Comentários: ``POST /rest/o/comment/list/v2`` (raízes) e
+  ``POST /rest/o/comment/sublist`` (respostas, por ``rootCommentId``), com o
+  contexto completo do app e ``client_key`` no corpo.
+- Perfil: ``POST /rest/o/user/getInfo`` resolve ``@handle`` no id numérico
+  (contexto completo) e ``POST /rest/o/feed/profile`` pagina as postagens por
+  ``pcursor`` (contexto mínimo validado no coletor).
 
-    As respostas (sub-comentários) vêm de ``POST /rest/o/comment/sublist`` com o
-    mesmo contexto e a mesma assinatura; o corpo usa ``rootCommentId`` e exige
-    ``client_key`` (sem ele o gateway responde ``result: 40``).
-
-    O feed de um perfil vem de dois passos (2026-10): ``POST /rest/o/user/getInfo``
-    resolve ``userIds=@handle`` no id numérico e ``POST /rest/o/feed/profile``
-    pagina as postagens por ``pcursor``. **O contexto ideal difere por rota**:
-    o ``getInfo`` usa o contexto completo e o feed usa o mínimo validado no coletor.
-    O app também retornou feeds com contexto completo; respostas vazias em testes
-    anteriores não demonstram uma rejeição universal desse contexto.
-
-Os parâmetros abaixo são o **contexto completo capturado do app** (versão em
-:mod:`src.infrastructure.kwai.mobile.app_identity`): emula o app ao máximo
-(``timestamp``/``session_id`` são gerados por requisição, como o app faz). A
-sessão, a assinatura e a escada de gateways ficam no :class:`MobileApiClient`;
-aqui fica o que é de cada rota: caminho, contexto, corpo e tamanho de página.
+O contexto completo foi capturado do app (versão em
+:mod:`src.infrastructure.kwai.mobile.app_identity`); ``timestamp`` e
+``session_id`` são gerados por requisição. Parâmetros e evidências estão em
+``docs/internals/mobile-api.md``.
 """
 
 from __future__ import annotations
@@ -107,7 +95,7 @@ DEFAULT_BODY: dict[str, str] = {
 
 
 class MobileApiAdapter(ICommentApiPort, IProfileApiPort):
-    """Rotas da API móvel, implementando as portas de comentários e de perfil."""
+    """Implementa as portas de comentários e de perfil sobre as rotas da API móvel do Kwai."""
 
     def __init__(self, client: MobileApiClient) -> None:
         """Inicializa o adapter.
@@ -251,6 +239,7 @@ class MobileApiAdapter(ICommentApiPort, IProfileApiPort):
 
         Raises:
             KwaiTransportError: se todos os gateways falharem no transporte.
+            UnexpectedResponseError: se ``feeds`` ou o cursor vierem fora do formato esperado.
             KwaiApiError: se o Kwai sinalizar erro de negócio (``result != 1``).
         """
         body = {

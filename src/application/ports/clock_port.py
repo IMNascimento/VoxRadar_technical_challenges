@@ -12,4 +12,4 @@ class IClockPort(ABC):
 
     @abstractmethod
     def now(self) -> IsoTimestamp:
-        """Instante atual, em ISO-8601 UTC."""
+        """Retorna o instante atual como carimbo ISO-8601 UTC."""

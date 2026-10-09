@@ -10,7 +10,7 @@ from ..enums.post_sort_by import PostSortBy
 
 @dataclass(frozen=True, kw_only=True)
 class PostAuthor:
-    """Autor de uma postagem."""
+    """Autor de uma postagem, como a API informa; campos ausentes ficam ``None``."""
 
     usuario: str | None = None
     id: str | None = None
@@ -31,7 +31,7 @@ class Engagement:
     visualizacoes: int | None = None
 
     def count(self, metric: PostSortBy) -> int | None:
-        """Contagem usada na ordenação; ``None`` quando desconhecida."""
+        """Retorna a contagem da métrica usada na ordenação; ``None`` quando desconhecida."""
         match metric:
             case PostSortBy.LIKES:
                 return self.curtidas
@@ -47,11 +47,10 @@ class Engagement:
 
 @dataclass(frozen=True, kw_only=True)
 class Post:
-    """Uma postagem do Kwai. Campos obrigatórios: ``url``, ``engajamento``,
-    ``coletado_em``.
+    """Postagem do Kwai, no formato do schema ``Postagem``.
 
-    Propriedades não entram em ``dataclasses.asdict``: ``dedup_key`` não altera o
-    contrato de saída.
+    Campos obrigatórios: ``url``, ``engajamento`` e ``coletado_em``. Propriedades
+    não entram em ``dataclasses.asdict``: ``dedup_key`` não altera o contrato de saída.
     """
 
     id: str | None = None
