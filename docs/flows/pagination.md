@@ -27,7 +27,8 @@ flowchart TD
 6. **Preservar:** casos de uso convertem falhas cobertas com itens em parcial;
    a CLI decide a escrita e sinaliza falha pelo código de saída.
 
-Sentinelas: `""`, `no_more`, `nomore`, `-1`, `0`. Cursor inicial vazio não impede
+Fim: cursor vazio. O adapter traduz os sentinelas do Kwai (`no_more`, `nomore`,
+`-1`, `0`) para vazio antes de entregar a página. Cursor inicial vazio não impede
 a primeira consulta. Parar ao atingir um limite evita página extra e pode
 evitar observar um ciclo que só seria acusado ao continuar consumindo.
 
@@ -60,4 +61,4 @@ Persistência, merge e dedupe entre execuções pertencem ao consumidor.
 [ADR de parcial](../adr/0004-partial-results-and-declared-counts.md) ·
 [Manutenção](../maintenance/maintenance.md) · [Protocolo móvel](../internals/mobile-api.md).
 
-Verificação: `tests/test_pagination.py`, `tests/test_usecases.py`, `tests/test_cli.py`.
+Verificação: `tests/unit/test_pagination.py`, `tests/unit/test_usecases.py`, `tests/integration/test_cli.py`.

@@ -7,8 +7,8 @@
 | **Ator** | Usuário da CLI ou programa Python chamador. |
 | **Objetivo** | Obter posts entregues pela API móvel para um perfil, paginados e deduplicados. |
 | **Pré-condições** | Configuração válida, acesso HTTPS aos gateways e handle reconhecido pela validação local. |
-| **Entrada** | `user: str`, `limit: int \| None = None`; CLI `--user/-u`. |
-| **Implementação** | `src/application/collect_user_posts.py`, injetado com `ProfileApiPort`. |
+| **Entrada** | `ProfileCollectionCommand.create(user, *, limit=None, ...)`; CLI `--user/-u`. |
+| **Implementação** | `src/application/use_cases/collect_user_posts.py`, injetado com `IProfileApiPort`. |
 | **Saída** | `list[Post]`, na ordem do feed após dedupe. |
 
 ## Fluxo principal
@@ -51,10 +51,10 @@ Consulte [CLI](../guides/cli.md) para saída por pasta e parciais.
 
 | Área | Testes |
 |---|---|
-| Resolução, limite único, dedupe e parcial | `tests/test_usecases.py`. |
-| Contexto e corpo por rota | `tests/test_mobile_api.py`. |
-| Capturas reais sanitizadas e mapeamento | `tests/test_mobile_captures.py`. |
-| Composição com HTTP simulado | `tests/test_collector.py`. |
+| Resolução, limite único, dedupe e parcial | `tests/unit/test_usecases.py`. |
+| Contexto e corpo por rota | `tests/integration/test_mobile_api.py`. |
+| Capturas reais sanitizadas e mapeamento | `tests/integration/test_mobile_captures.py`. |
+| Composição com HTTP simulado | `tests/integration/test_collector.py`. |
 
 ## Relacionados
 

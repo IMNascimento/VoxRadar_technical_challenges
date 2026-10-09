@@ -7,13 +7,13 @@
 | **Ator** | Usuário da CLI ou programa Python chamador. |
 | **Objetivo** | Obter raízes de uma postagem e, opcionalmente, respostas com vínculo explícito. |
 | **Pré-condições** | Configuração válida, acesso HTTPS aos gateways e string com `/video/<id>` ou `/photo/<id>`. |
-| **Entrada** | `post_url: str`, `limit: int \| None = None`, `with_replies: bool = False`; CLI nova `comments --url`, `--with-comments-replies`. |
-| **Implementação** | `src/application/collect_comments.py`, injetado com `CommentApiPort`. |
-| **Saída** | Lista de `Comment`; com expansão concluída, lista plana de `ExpandedComment`. |
+| **Entrada** | `CommentCollectionCommand.create(post_url, *, limit=None, with_comments=True, with_replies=False)`; CLI `comments --url`, `--with-comments-replies`. |
+| **Implementação** | `src/application/use_cases/collect_comment_versions.py`, injetado com `ICommentApiPort`. |
+| **Saída** | `CollectionResult` por versão: `Comment`; com expansão concluída, lista plana de `ExpandedComment`. |
 
 ## Fluxo principal
 
-1. Extrair `PhotoId` da string de entrada e gerar `coletado_em`.
+1. Extrair `PhotoId` da string de entrada ao criar o comando; gerar `coletado_em` pelo relógio injetado.
 2. Paginar raízes com `count=50`, contando itens crus até o limite quando houver.
 3. Deduplicar raízes e conservar seus totais declarados separadamente do modelo simples.
 4. Sem expansão, devolver os comentários simples.
@@ -23,9 +23,8 @@
 7. Comparar total declarado conhecido não negativo com quantidade única entregue.
 8. Continuar com a próxima raiz; devolver lista plana e serializar na CLI.
 
-`comments` usa `CollectCommentVersions`, que compartilha a mecânica com
-`CollectComments` e marca a etapa de falha no resultado. O caso de uso Python
-original mantém seu contrato. Veja as opções em [CLI](../guides/cli.md).
+`comments` usa `CollectCommentVersions`, que marca a etapa de falha no
+resultado. Veja as opções em [CLI](../guides/cli.md).
 
 ## Fluxos alternativos
 
@@ -57,11 +56,11 @@ original mantém seu contrato. Veja as opções em [CLI](../guides/cli.md).
 
 | Área | Testes |
 |---|---|
-| Limites crus, expansão, vínculos, loops e total divergente | `tests/test_usecases.py`. |
-| Corpo de raízes/sublista e assinatura | `tests/test_mobile_api.py`. |
-| Capturas sanitizadas | `tests/test_mobile_captures.py`. |
-| Página inválida e parcial | `tests/test_response_validation.py`. |
-| CLI e gravação | `tests/test_cli.py`. |
+| Limites crus, expansão, vínculos, loops e total divergente | `tests/unit/test_usecases.py`. |
+| Corpo de raízes/sublista e assinatura | `tests/integration/test_mobile_api.py`. |
+| Capturas sanitizadas | `tests/integration/test_mobile_captures.py`. |
+| Página inválida e parcial | `tests/integration/test_response_validation.py`. |
+| CLI e gravação | `tests/integration/test_cli.py`. |
 
 ## Relacionados
 

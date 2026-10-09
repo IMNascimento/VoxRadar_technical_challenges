@@ -138,7 +138,7 @@ Em shell POSIX:
 cp .env.example .env
 ```
 
-[`Settings`](../../src/config.py) lê `.env`, variáveis `KWAI_` e parâmetros explícitos
+[`Settings`](../../src/config/settings.py) lê `.env`, variáveis `KWAI_` e parâmetros explícitos
 quando instanciado em Python. `.env` é ignorado pelo Git. Os campos desconhecidos
 do arquivo são ignorados; isso não cria opções novas no coletor.
 
@@ -150,7 +150,7 @@ do arquivo são ignorados; isso não cria opções novas no coletor.
 | `KWAI_USER_AGENT` | `user_agent` | UA de navegador em `DEFAULT_USER_AGENT` | Aplicado apenas à busca web; vazio volta ao padrão. |
 
 `APP_VERSION`, `CLIENT_KEY`, `SIG_SALT` e o UA móvel não são variáveis `KWAI_`.
-São constantes em [`app_identity.py`](../../src/infrastructure/app_identity.py).
+São constantes em [`app_identity.py`](../../src/infrastructure/kwai/mobile/app_identity.py).
 Não há opções de cookie, proxy dedicado, signer externo ou retomada de cursor.
 
 O timeout numérico do HTTPX cobre esperas de conexão, leitura, escrita e pool;

@@ -70,7 +70,7 @@ nova captura executada na elaboração desta documentação.
 Os relatórios locais ficam em `out/frida-audit-20261007-174633/`, ignorado pelo
 Git, e podem não existir em outro checkout. Os exemplos permanentes estão em
 [`tests/fixtures`](../../tests/fixtures), com testes em
-[`test_mobile_captures.py`](../../tests/test_mobile_captures.py).
+[`test_mobile_captures.py`](../../tests/integration/test_mobile_captures.py).
 
 Fixtures são recortes: dois itens por página de comentários/perfil, três respostas.
 Preservam campos escolhidos e cursores, mas não representam páginas completas.

@@ -27,8 +27,9 @@ mecânica de continuação, preservando as políticas de cada operação.
 
 ## Decisão
 
-Adapters retornam `ProfilePage`, `CommentPage` ou `SubCommentPage` via `Protocol`
-da aplicação. `iter_pages` controla continuação sob demanda; casos de uso
+Adapters retornam `ProfilePage`, `CommentPage` ou `SubCommentPage` pelas portas
+da aplicação (`IProfileApiPort`, `ICommentApiPort`, classes abstratas).
+`iter_pages`, serviço de domínio, controla continuação sob demanda; casos de uso
 acumulam, deduplicam, aplicam limite e tratam interrupções.
 
 Uma página é entregue antes da checagem de sua continuação. Ao atingir limite,
@@ -41,7 +42,7 @@ como consequência desse gerador interno.
 - **Ganhamos:** teste de caso de uso com fake, isolamento de HTTP e uma regra
   compartilhada de cursor sem apagar limites próprios de perfil/raízes.
 - **Abrimos mão de:** uma interface única “coletar tudo” no adapter; há objetos
-  de página, `Protocol` e coordenação explícita a manter.
+  de página, portas abstratas e coordenação explícita a manter.
 - **Risco:** a ordem `yield → checar continuação` afeta parcial e detecção de
   loop; mudar essa ordem pode perder itens ou produzir chamadas extras.
 - **Revisitar quando:** uma necessidade confirmada de streaming público,
@@ -50,9 +51,10 @@ como consequência desse gerador interno.
 
 ## Consequências e verificação
 
-Implementação em `src/application/ports.py`, `pagination.py` e casos de uso.
-Testes em `tests/test_pagination.py`, `tests/test_usecases.py`,
-`tests/test_collector.py`. Casos de uso não importam adapters concretos.
+Implementação em `src/application/ports/`, `src/application/dtos/pages.py`,
+`src/domain/services/pagination.py` e casos de uso.
+Testes em `tests/unit/test_pagination.py`, `tests/unit/test_usecases.py`,
+`tests/integration/test_collector.py`. Casos de uso não importam adapters concretos.
 
 [RN-003 a RN-005](../business-rules/collection.md) · [Paginação](../flows/pagination.md) ·
 [API Python](../reference/api-reference.md) · [Arquitetura](../internals/architecture.md).

@@ -2,16 +2,17 @@
 
 # Schemas e mapeamento
 
-Este é o contrato **implementado** em [`models.py`](../../src/application/models.py),
+Este é o contrato **implementado** em [`domain/entities`](../../src/domain/entities),
 adaptado do documento de schemas dos experimentos. Os nomes das classes foram
 atualizados; os campos JSON permanecem em português. Não reproduz um schema
 externo não verificado nem estabelece regras novas.
 
 ## Modelos de saída
 
-Todos os modelos usam `extra="forbid"`. Isso rejeita campos extras ao construir
-um modelo; não valida estritamente cada payload cru do Kwai nem prova a correção
-semântica do mapeamento. Pydantic pode aplicar coerção de tipos.
+Todos os modelos são dataclasses imutáveis (`frozen=True`, `kw_only=True`). O
+construtor exige os campos obrigatórios e rejeita campos extras; não valida
+tipos em tempo de execução, não valida estritamente cada payload cru do Kwai nem
+prova a correção semântica do mapeamento. A coerção de tipos fica no mapeamento.
 
 ### `Post`
 
@@ -59,7 +60,9 @@ recalculado para caber na quantidade entregue e não significa completude.
 ## Exemplo sintético offline
 
 ```python
-from src.application.models import Engagement, Post
+from dataclasses import asdict
+
+from src.domain.entities.post import Engagement, Post
 
 post = Post(
     id="123",
@@ -69,7 +72,7 @@ post = Post(
 )
 assert post.engajamento.curtidas == 0
 assert post.engajamento.comentarios is None
-print(post.model_dump())
+print(asdict(post))
 ```
 
 JSON ilustrativo de uma raiz e uma resposta (não é uma captura real):
@@ -162,18 +165,18 @@ incluídas nesta documentação.
 
 ## Serialização e testes
 
-A CLI faz `model_dump()` e `json.dumps(..., ensure_ascii=False, indent=2)`.
+A CLI faz `dataclasses.asdict()` e `json.dumps(..., ensure_ascii=False, indent=2)`.
 Não usa `exclude_none`: campos opcionais aparecem como `null`. A lista não inclui
 metadados de rota, duração, cursor, completude ou erro. Essa informação operacional
 deve ser acompanhada de logs/código de saída.
 
 | Teste/artefato | Cobertura relevante |
 |---|---|
-| `tests/test_models.py` | Campos obrigatórios e rejeição de extras. |
-| `tests/test_parsers.py` | URLs, conteúdo, métricas, autores e datas. |
-| `tests/test_response_validation.py` | Estruturas, itens, cursores e preservação do parcial. |
-| `tests/test_mobile_captures.py` | Campos e cursores em recortes reais sanitizados. |
-| `tests/test_samples.py`, `samples/` | Exemplos versionados compatíveis com modelos. |
+| `tests/unit/test_models.py` | Campos obrigatórios e rejeição de extras. |
+| `tests/unit/test_parsers.py` | URLs, conteúdo, métricas, autores e datas. |
+| `tests/integration/test_response_validation.py` | Estruturas, itens, cursores e preservação do parcial. |
+| `tests/integration/test_mobile_captures.py` | Campos e cursores em recortes reais sanitizados. |
+| `tests/unit/test_samples.py`, `samples/` | Exemplos versionados compatíveis com modelos. |
 
 Detalhes da expansão estão em [Comentários e respostas](../flows/comments.md); veja
 [Referência Python](./api-reference.md) para tipos de página e exceções.

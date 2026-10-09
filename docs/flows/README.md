@@ -14,7 +14,7 @@ fila ou signer externo oculto no fluxo.
 | [Comentários](./comments.md) | URL → raízes → expansão opcional. | UC-003. |
 | [Paginação e interrupção](./pagination.md) | Cursor → páginas → fim ou erro/parcial. | Perfil, raízes e sublistas. |
 
-Fontes: `src/application/`, `src/container.py` e adapters em `src/infrastructure/`.
+Fontes: `src/application/`, `src/infrastructure/container/container.py` e adapters em `src/infrastructure/`.
 HTTP e transformação em modelos pertencem aos adapters; limites e dedupe,
 aos casos de uso. Veja [Arquitetura](../internals/architecture.md),
 [Regras](../business-rules/README.md) e [Casos de uso](../use-cases/README.md).

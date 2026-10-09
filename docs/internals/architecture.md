@@ -8,11 +8,14 @@ O Kwai Collector é uma aplicação Python síncrona de linha de comando para
 coletar postagens por palavra-chave, postagens de um perfil e comentários de
 uma postagem. A CLI exporta listas JSON em pastas organizadas por execução.
 
-A organização é em camadas, com portas de leitura definidas como `Protocol`
-e adapters HTTP concretos. O domínio concentra identificadores e regras de
-identidade; a aplicação orquestra a coleta; a infraestrutura conhece o formato
-e os endpoints do Kwai. Não há banco de dados, fila ou servidor web no fluxo
-implementado. Os itens coletados permanecem em memória até a escrita da saída.
+A organização segue DDD tático com Ports & Adapters: as portas de saída são
+classes abstratas (`ABC`, prefixo `I` e sufixo `Port`) definidas na aplicação, e
+a infraestrutura as implementa com adapters HTTP concretos. O domínio concentra
+as entidades `Post` e `Comment`, identificadores e as regras de identidade,
+paginação e ordenação; a aplicação valida a entrada em comandos e orquestra a
+coleta; a infraestrutura conhece o formato, os endpoints e os tamanhos de
+página do Kwai. Não há banco de dados, fila ou servidor web no fluxo
+implementado, portanto não há repositórios de domínio. Os itens coletados permanecem em memória até a escrita da saída.
 
 ### Stack
 
@@ -20,8 +23,7 @@ implementado. Os itens coletados permanecem em memória até a escrita da saída
 |---|---|
 | Python 3.11+ e Poetry | Runtime, dependências e script `kwai-collector`. |
 | Typer | Subcomandos, opções e códigos de saída da CLI. |
-| Pydantic | Modelos do contrato de saída. |
-| pydantic-settings | Configuração via ambiente e `.env`. |
+| pydantic-settings | Configuração via ambiente e `.env` (único uso de Pydantic). |
 | HTTPX | Clientes HTTP síncronos para busca web e API móvel. |
 | Tenacity | Retry de falhas selecionadas, com backoff exponencial. |
 | Pytest e respx | Testes e simulação do transporte HTTP. |
@@ -34,87 +36,113 @@ As dependências e os comandos de qualidade estão em
 
 ```text
 src/
-├── __main__.py              # Entrada por módulo e script instalado
-├── config.py                # Settings
-├── container.py             # Composição e encerramento dos recursos
-├── entrypoints/
-│   ├── cli.py               # Entrada da CLI
-│   ├── export_commands.py   # Comandos ingleses e lifecycle
-│   └── export_files.py      # Layout e publicação de JSON
-├── application/
-│   ├── ports.py             # Protocols e objetos de página
-│   ├── models.py            # Post, Comment e ExpandedComment
-│   ├── pagination.py        # Iteração compartilhada por pcursor
-│   ├── exceptions.py        # Interrupção com parcial e cursor repetido
-│   ├── search_posts.py
-│   ├── collect_user_posts.py
-│   ├── collect_comments.py  # Versão única e duas versões de comentários
-│   ├── collect_profile_bundle.py # Coleta combinada por postagem
-│   └── collection_result.py # Unidade com etapa e erro explícitos
+├── __main__.py                        # Entrada por módulo e script instalado
+├── config/
+│   └── settings.py                    # Settings (parâmetros técnicos, sem credenciais)
 ├── domain/
-│   ├── identity.py          # Normalização, extração de id e deduplicação
-│   ├── business_result.py   # Validação do campo result
-│   ├── constants.py
-│   ├── exceptions.py
-│   └── value_objects/       # Identificadores, cursor e timestamp
+│   ├── entities/                      # Post, Comment e ExpandedComment
+│   ├── value_objects/                 # Handle, ids, PostReference, Cursor e IsoTimestamp
+│   ├── enums/post_sort_by.py          # Contagem usada na ordenação
+│   ├── exceptions/domain_exceptions.py # Base, entrada/valor inválidos e cursor repetido
+│   └── services/
+│       ├── identity.py                # Normalização de handle, chaves e UniqueItems (dedup)
+│       ├── post_urls.py               # Formato das URLs do Kwai: montar e extrair id/dono
+│       ├── replies.py                 # Elegibilidade para expansão e divergência de contagem
+│       ├── pagination.py              # Continuação, fim e laço de cursor (iter_pages)
+│       └── post_ordering.py           # Ordenação por contagem
+├── application/
+│   ├── ports/                         # ISearchApiPort, IProfileApiPort, ICommentApiPort, IClockPort
+│   ├── dtos/
+│   │   ├── commands.py                # Comandos de entrada validados
+│   │   ├── pages.py                   # Páginas devolvidas pelas portas
+│   │   └── collection_result.py       # Unidade com etapa e erro explícitos
+│   ├── use_cases/
+│   │   ├── search_posts.py
+│   │   ├── collect_user_posts.py
+│   │   ├── collect_comment_versions.py # Raízes e expansão de respostas
+│   │   └── collect_profile_bundle.py  # Coleta combinada por postagem
+│   └── exceptions.py                  # Interrupção com resultado parcial
 ├── infrastructure/
-│   ├── web_client.py        # Busca por palavra-chave
-│   ├── mobile_client.py     # Perfil, comentários e respostas
-│   ├── mapping.py           # Dados crus -> modelos de saída
-│   ├── app_identity.py      # Identidade da versão do app
-│   ├── signature.py         # Assinatura sig
-│   ├── http_utils.py        # Decodificação JSON e retry
-│   └── exceptions.py
+│   ├── container/container.py         # Composição e encerramento dos recursos
+│   ├── clock/system_clock.py          # SystemClock (IClockPort)
+│   └── kwai/
+│       ├── mapping.py                 # Dados crus -> entidades
+│       ├── coercion.py                # Escalares crus e timestamps em ms
+│       ├── business_result.py         # Validação do campo result
+│       ├── http_utils.py              # Decodificação JSON, leitura de listas/cursor e retry
+│       ├── ratelimit.py               # Intervalo mínimo entre requisições
+│       ├── exceptions.py              # Transporte, resposta inesperada e erro de negócio
+│       ├── web/
+│       │   ├── client.py              # KwaiWebClient: sessão, rate limit e retry
+│       │   └── adapter.py             # KwaiWebAdapter: busca por palavra-chave
+│       └── mobile/
+│           ├── client.py              # MobileApiClient: sessão, assinatura e escada de gateways
+│           ├── adapter.py             # MobileApiAdapter: perfil, comentários e respostas
+│           ├── signature.py           # Assinatura sig
+│           └── app_identity.py        # Identidade da versão do app
+├── entrypoints/
+│   └── cli/
+│       ├── app.py                     # Entrada da CLI
+│       ├── export_commands.py         # Comandos ingleses e lifecycle
+│       └── export_files.py            # Layout e publicação de JSON
 └── shared/
-    ├── logging_config.py
-    └── utils/               # Coerção, timestamps e rate limit
+    └── logging/logging_config.py
 ```
+
+Cada integração separa o **cliente** (sessão, credenciais de assinatura, rate
+limit e retry) do **adapter** (rota, contexto, corpo, tamanho de página e
+mapeamento para entidades), que implementa a porta usando o cliente.
 
 ### Responsabilidades e dependências
 
 | Unidade | Responsabilidade | Dependências relevantes |
 |---|---|---|
-| `domain/` | Validar identificadores, reconhecer fim de cursor, formar chaves de deduplicação e interpretar erros de negócio. | Biblioteca padrão. |
-| `application/` | Controlar limites, paginação e deduplicação; devolver modelos de saída ou uma interrupção com parcial. | Domínio, utilitários compartilhados, Pydantic e portas locais. |
-| `infrastructure/` | Fazer HTTP, assinar requisições móveis e converter respostas. | Portas/modelos da aplicação, domínio, configuração e utilitários. |
-| `entrypoints/cli.py` | Interpretar argumentos, chamar serviços, escrever JSON e converter falhas em códigos de saída. | Aplicação, domínio, configuração e composição. |
-| `container.py` | Instanciar adapters, injetar portas nos casos de uso e fechar os clientes. | Configuração, aplicação e infraestrutura concreta. |
-| `shared/` | Oferecer logging, coerção, conversão temporal e limitação de intervalo. | Biblioteca padrão. |
+| `domain/` | Definir as entidades do contrato, validar identificadores, formar chaves e manter a primeira ocorrência na deduplicação, montar e interpretar URLs do Kwai, decidir expansão e divergência de respostas, continuação/fim/laço da paginação e ordenar postagens. | Biblioteca padrão. |
+| `application/` | Declarar as portas de saída; validar a entrada em comandos; orquestrar paginação, limites e as regras do domínio; devolver `CollectionResult` com o parcial e a falha. | Domínio e `shared/` (logging). |
+| `infrastructure/` | Implementar as portas: fazer HTTP, assinar requisições móveis, escolher tamanhos de página, interpretar o campo `result`, converter respostas e fornecer o relógio. | Aplicação (portas e DTOs), domínio, configuração e `shared/`. |
+| `infrastructure/container/` | Único lugar que instancia clientes, adapters e relógio; injeta as portas nos casos de uso e fecha os clientes. | Configuração, casos de uso e infraestrutura concreta. |
+| `entrypoints/` | Montar comandos a partir dos argumentos, chamar os casos de uso pelo container, escrever JSON e converter falhas em códigos de saída. | DTOs da aplicação; entidades, enum, exceções e `PostReference` do domínio; configuração e container. Nunca serviços de domínio nem infraestrutura concreta. |
+| `shared/` | Oferecer a configuração de logging. | Biblioteca padrão. |
 
 As setas abaixo representam dependências de código, não a ordem de execução:
 
 ```mermaid
 flowchart TD
-    CLI[entrypoints / CLI] --> Composition[container / composição]
-    CLI --> Application[application / casos de uso e portas]
+    CLI[entrypoints / CLI] --> Container[infrastructure / container]
+    CLI --> Dtos[application / DTOs]
     CLI --> Domain[domain]
-    Composition --> Application
-    Composition --> Infrastructure[infrastructure / adapters HTTP]
-    Infrastructure --> Application
-    Infrastructure --> Domain
-    Application --> Domain
+    Container --> UseCases[application / casos de uso]
+    Container --> Adapters[infrastructure / clientes e adapters]
+    Adapters --> Ports[application / portas e DTOs]
+    Adapters --> Domain
+    UseCases --> Ports
+    UseCases --> Domain
+    Ports --> Domain
     CLI --> Config[config / Settings]
-    Composition --> Config
-    Infrastructure --> Config
-    CLI --> Shared[shared / utilitários]
-    Application --> Shared
-    Infrastructure --> Shared
+    Container --> Config
+    Adapters --> Config
+    UseCases --> Shared[shared / utilitários]
+    Adapters --> Shared
+    CLI --> Shared
 ```
 
-Os casos de uso não importam os adapters concretos. As portas de I/O e os
-modelos de saída pertencem à aplicação, não ao domínio. A CLI conhece a
-composição, mas não importa diretamente os clientes HTTP.
+O domínio não importa nada de fora dele. Os casos de uso dependem das portas
+(classes abstratas) e nunca dos adapters, nem de Pydantic. A CLI só alcança a
+infraestrutura pelo container e não chama serviços de domínio: a validação da
+entrada fica nos comandos. Trocar um adapter não exige mudança na aplicação.
 
 ## Composição e ciclo de vida
 
-[`build_services`](../../src/container.py) cria um `KwaiWebAdapter` e um
-`MobileApiAdapter`. O primeiro é injetado em `SearchPosts`; o segundo é
-compartilhado por `CollectUserPosts` e `CollectComments`.
+[`build_services`](../../src/infrastructure/container/container.py) cria um
+`KwaiWebClient` e um `MobileApiClient` (donos das sessões HTTP), os adapters
+`KwaiWebAdapter` e `MobileApiAdapter` sobre eles e um `SystemClock`. O adapter web
+é injetado em `SearchPosts`; o móvel implementa as duas portas e é injetado em
+`CollectCommentVersions` e `CollectProfileBundle`. Todos recebem o relógio.
 
-`Services` expõe os casos de uso originais, `comment_versions` e `profile_bundle`,
+`Services` expõe `search_posts`, `comment_versions` e `profile_bundle`,
 e funciona como context manager. Cada unidade é persistida
 durante o bloco `with`, antes do fechamento.
-O encerramento usa `ExitStack` para tentar fechar ambos os recursos, mesmo
+O encerramento usa `ExitStack` para tentar fechar ambos os clientes, mesmo
 quando um `close()` falha.
 
 ```mermaid
@@ -144,20 +172,21 @@ sequenceDiagram
 
 ### Busca por palavra-chave
 
-[`SearchPosts`](../../src/application/search_posts.py) usa `SearchApiPort`,
-implementada pelo [`KwaiWebAdapter`](../../src/infrastructure/web_client.py).
+[`SearchPosts`](../../src/application/use_cases/search_posts.py) usa `ISearchApiPort`,
+implementada pelo [`KwaiWebAdapter`](../../src/infrastructure/kwai/web/adapter.py).
 Cada palavra-chave processada gera uma chamada lógica ao endpoint
 `POST /rest/o/w/pwa/v2/search/word/outer`; retries podem gerar novas tentativas.
 
-Não há paginação por cursor nesse caso de uso. O `count` enviado fica entre
-1 e 50. O limite final é aplicado após a deduplicação entre palavras-chave,
+Não há paginação por cursor nesse caso de uso. O caso de uso pede o `limit` a
+cada palavra-chave; o adapter envia `count` entre 1 e `SEARCH_MAX_COUNT` (50),
+registrando aviso quando corta o pedido. O limite final é aplicado após a deduplicação entre palavras-chave,
 por id ou, na ausência dele, URL. Ao atingir o limite, as palavras-chave
 restantes não são consultadas.
 
 ```mermaid
 flowchart LR
     Input[Palavras-chave] --> Search[SearchPosts]
-    Search --> Port[SearchApiPort]
+    Search --> Port[ISearchApiPort]
     Port --> Web[KwaiWebAdapter / busca web]
     Web --> Mapping[Mapear feeds para Post]
     Mapping --> Dedup[Deduplicar e aplicar limite total]
@@ -166,11 +195,12 @@ flowchart LR
 
 ### Postagens de um perfil
 
-[`CollectUserPosts`](../../src/application/collect_user_posts.py) normaliza o
-handle e usa `ProfileApiPort`. O adapter móvel resolve o id numérico com
+[`CollectUserPosts`](../../src/application/use_cases/collect_user_posts.py), acionado por
+`CollectProfileBundle`, recebe o handle já normalizado no comando e usa
+`IProfileApiPort`. O adapter móvel resolve o id numérico com
 `POST /rest/o/user/getInfo`, usando o contexto completo do app. Depois busca
 páginas com `POST /rest/o/feed/profile`, usando o contexto mínimo definido em
-`PROFILE_MINIMAL_QUERY` e `count=30`.
+`PROFILE_MINIMAL_QUERY` e `count=30` (`PROFILE_PAGE_SIZE`).
 
 Esse contexto mínimo foi validado no coletor, mas não é uma exigência universal:
 o app também entregou feeds com contexto completo. A combinação responsável
@@ -191,14 +221,15 @@ flowchart LR
 
 ### Comentários e respostas
 
-[`CollectComments`](../../src/application/collect_comments.py) extrai o id da
-postagem e usa `CommentApiPort`. O adapter busca raízes com
-`POST /rest/o/comment/list/v2`, pedindo 50 itens por página.
+[`CollectCommentVersions`](../../src/application/use_cases/collect_comment_versions.py) recebe a
+postagem já validada no comando (`PostReference`) e usa `ICommentApiPort`. O
+adapter busca raízes com `POST /rest/o/comment/list/v2`, pedindo 50 itens por
+página (`COMMENTS_PAGE_SIZE`).
 
 Aqui o limite conta **raízes recebidas antes da deduplicação**, não a quantidade
 final de comentários únicos. Com `--with-comments-replies`, a aplicação primeiro coleta
 as raízes e depois percorre as respostas de cada raiz elegível pelo endpoint
-`POST /rest/o/comment/sublist`, pedindo 100 itens por página.
+`POST /rest/o/comment/sublist`, pedindo 100 itens por página (`SUBLIST_PAGE_SIZE`).
 
 Raízes sem id ou sem quantidade declarada de respostas não geram consulta à
 sublista. As respostas não consomem o limite das raízes. A saída expandida é
@@ -224,11 +255,13 @@ flowchart LR
 
 ### Paginação compartilhada
 
-[`iter_pages`](../../src/application/pagination.py) começa com cursor vazio e
+[`iter_pages`](../../src/domain/services/pagination.py) começa com cursor vazio e
 busca a próxima página somente quando o consumidor a solicita. Uma página
-vazia ou um cursor de fim encerra a iteração. Os valores de fim são
-`""`, `no_more`, `nomore`, `-1` e `0`, definidos em
-[`Cursor`](../../src/domain/value_objects/cursor.py).
+vazia ou um cursor vazio ([`Cursor`](../../src/domain/value_objects/cursor.py))
+encerra a iteração. Os sentinelas de fim do Kwai (`no_more`, `nomore`, `-1` e
+`0`) são protocolo e ficam na infraestrutura:
+[`read_cursor`](../../src/infrastructure/kwai/http_utils.py) os traduz para
+cursor vazio, então o domínio não conhece o formato de nenhuma origem.
 
 Um cursor de continuação já visto causa `RepeatedCursorError`. A página é
 entregue ao consumidor antes dessa verificação; itens dela podem integrar o
@@ -248,11 +281,11 @@ extra. Não há checkpoint persistente de cursor nem retomada entre execuções.
 | Mapeamento de feeds | Feeds sem dados suficientes para montar a URL são ignorados com aviso; os demais itens continuam. |
 
 A API móvel usa requisições assinadas, sem fluxo de login implementado.
-[`compute_sig`](../../src/infrastructure/signature.py) combina parâmetros de query
+[`compute_sig`](../../src/infrastructure/kwai/mobile/signature.py) combina parâmetros de query
 e corpo, ordena as chaves, concatena `k=v` sem separadores e calcula MD5 com o
 sal da identidade do app. `sig`, `__NS_sig3` e `__NStokensig` ficam fora desse
 cálculo. Versão, chave do cliente e sal estão concentrados em
-[`app_identity.py`](../../src/infrastructure/app_identity.py).
+[`app_identity.py`](../../src/infrastructure/kwai/mobile/app_identity.py).
 
 As rotas usadas pelo coletor foram validadas sem `__NS_sig3`. Seu algoritmo não
 foi reproduzido: chamadas observadas de `atlasSign` receberam entradas muito
@@ -266,9 +299,10 @@ selecionado na montagem da requisição de cada rota.
 ### Interrupções e resultado parcial
 
 Se um `KwaiCollectorError` interrompe a coleta depois de obter itens, a aplicação
-lança [`CollectionInterruptedError`](../../src/application/exceptions.py), com os
-itens em `partial` e a causa original em `__cause__`. Sem itens, propaga a causa.
-A CLI tenta escrever o parcial e termina com código `1`; se essa escrita
+lança internamente [`CollectionInterruptedError`](../../src/application/exceptions.py),
+com os itens em `partial` e a causa original em `__cause__`. Sem itens, propaga
+a causa. Os casos de uso expostos convertem essa falha em `CollectionResult`
+com `error` e o parcial em `items`. A CLI tenta escrever o parcial e termina com código `1`; se essa escrita
 também falhar com `OSError`, registra a falha e mantém o código `1`.
 
 Um cursor repetido na sublista de respostas é tratado localmente: registra
@@ -279,25 +313,30 @@ Não há garantia de persistência se a escrita da saída falhar.
 
 ## Contratos de dados e saída
 
-[`models.py`](../../src/application/models.py) define `Post`, `Comment`, seus
-objetos de autor/engajamento e a extensão opt-in `ExpandedComment`.
-Os modelos rejeitam campos extras. Valores opcionais desconhecidos ficam
-como `None`, serializados como `null`; o mapeamento não preenche métricas
-ausentes com zero. Os helpers de timestamp produzem ISO-8601 UTC com sufixo `Z`.
-Cada execução de caso de uso gera um único `coletado_em` para seus itens.
+[`domain/entities`](../../src/domain/entities) define `Post`, `Comment`, seus
+objetos de autor/engajamento e a extensão opt-in `ExpandedComment`, como
+dataclasses imutáveis. O construtor exige os campos obrigatórios e rejeita
+extras. Valores opcionais desconhecidos ficam como `None`, serializados como
+`null`; o mapeamento não preenche métricas ausentes com zero. O formato
+ISO-8601 UTC com sufixo `Z` é definido por `IsoTimestamp.from_datetime`, usado
+pelo relógio e pela conversão de timestamps do Kwai. Cada execução de caso de uso
+lê o `IClockPort` injetado uma única vez e gera um único `coletado_em` para seus itens.
 
-[`mapping.py`](../../src/infrastructure/mapping.py) conhece os nomes de campos
-externos, limpa textos, constrói URLs e converte dados para esses modelos.
-Os casos de uso recebem modelos/páginas, não respostas HTTP cruas.
+[`mapping.py`](../../src/infrastructure/kwai/mapping.py) conhece os nomes de campos
+externos, limpa textos e converte dados para as entidades. As URLs de postagem e
+de perfil vêm de [`post_urls.py`](../../src/domain/services/post_urls.py), única
+fonte do formato de URL do Kwai: o mapeamento monta, os comandos extraem id e
+dono, e a CLI só lê `PostReference.owner` para nomear o diretório.
+Os casos de uso recebem entidades/páginas, não respostas HTTP cruas.
 
-A [exportação da CLI](../../src/entrypoints/export_files.py) serializa com `model_dump()` e
+A [exportação da CLI](../../src/entrypoints/cli/export_files.py) serializa com `dataclasses.asdict()` e
 `json.dumps(..., ensure_ascii=False, indent=2)`. A saída é UTF-8.
 `--out` é pasta-base opcional (padrão `exports`), cada execução é exclusiva
 e cada JSON é publicado por rename de temporário. Parciais usam `.partial.json`.
 As unidades são persistidas entre etapas de coleta, não a cada página HTTP.
 Veja [CLI](../guides/cli.md).
 
-`CollectionResult` identifica explicitamente `kind`, `stage` e `error`.
+`CollectionResult[T]` identifica `kind`, `error` e a `stage` derivada de `kind`.
 `CollectCommentVersions` entrega raízes e expansão separadamente; se raízes
 falharem, não entrega uma expansão falsa. `CollectProfileBundle` entrega posts
 e isola comentários por postagem. A escrita permanece no entrypoint, sem nova
@@ -311,7 +350,7 @@ porta de storage ou dependência de filesystem na aplicação.
 
 ## Configuração e observabilidade
 
-[`Settings`](../../src/config.py) lê `.env` e variáveis com prefixo `KWAI_`:
+[`Settings`](../../src/config/settings.py) lê `.env` e variáveis com prefixo `KWAI_`:
 `REQUEST_DELAY`, `HTTP_TIMEOUT`, `MAX_RETRIES` e `USER_AGENT`.
 O User-Agent configurável é usado somente pelo adapter web; o móvel usa o da
 identidade do app. Padrões e exemplos estão no [README](../../README.md).
@@ -324,14 +363,15 @@ Não há serviço externo de telemetria no fluxo implementado.
 
 | Área | Testes existentes |
 |---|---|
-| Orquestração sem HTTP, deduplicação e resultados parciais | `tests/test_usecases.py` |
-| Paginação compartilhada | `tests/test_pagination.py` |
-| Integração dos casos de uso com HTTP simulado | `tests/test_collector.py` |
-| API móvel, assinatura, contextos de rota e gateways | `tests/test_mobile_api.py` |
-| Capturas sanitizadas: mapeamento e paginação offline | `tests/test_mobile_captures.py` |
-| CLI e gravação de saída | `tests/test_cli.py` |
-| Contratos e mapeamento | `tests/test_models.py`, `tests/test_parsers.py`, `tests/test_samples.py` |
-| Identificadores e rate limit | `tests/test_domain.py`, `tests/test_ratelimit.py` |
+| Orquestração sem HTTP, deduplicação e resultados parciais | `tests/unit/test_usecases.py` |
+| Paginação compartilhada | `tests/unit/test_pagination.py` |
+| Integração dos casos de uso com HTTP simulado | `tests/integration/test_collector.py` |
+| API móvel, assinatura, contextos de rota e gateways | `tests/integration/test_mobile_api.py` |
+| Capturas sanitizadas: mapeamento e paginação offline | `tests/integration/test_mobile_captures.py` |
+| CLI e gravação de saída | `tests/integration/test_cli.py` |
+| Contratos e mapeamento | `tests/unit/test_models.py`, `tests/unit/test_parsers.py`, `tests/unit/test_samples.py` |
+| Identificadores e rate limit | `tests/unit/test_domain.py`, `tests/unit/test_ratelimit.py` |
+| Protocolo do Kwai: `pcursor` e campo `result` | `tests/unit/test_kwai_protocol.py` |
 
 A coleta depende de endpoints e formatos externos do Kwai. Fim de paginação
 significa fim informado pela resposta, não prova de completude de todo o

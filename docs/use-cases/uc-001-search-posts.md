@@ -7,8 +7,8 @@
 | **Ator** | Usuário da CLI ou programa Python chamador. |
 | **Objetivo** | Obter postagens associadas a uma ou mais palavras-chave, sem login implementado. |
 | **Pré-condições** | Dependências instaladas, configuração válida, acesso HTTPS ao Kwai e lista de palavras não vazia. |
-| **Entrada** | `keywords: list[str]`, `limit: int = 20`; na CLI, `--keyword/-k` repetível e `--limit/-l`. |
-| **Implementação** | `src/application/search_posts.py`, injetado com `SearchApiPort`. |
+| **Entrada** | `SearchCommand.create(keywords, *, limit=20, sort_by=None)`; na CLI, `--keyword/-k` repetível e `--limit/-l`. |
+| **Implementação** | `src/application/use_cases/search_posts.py`, injetado com `ISearchApiPort`. |
 | **Saída** | `list[Post]`, ordenada pela primeira ocorrência, limitada após dedupe. |
 
 ## Fluxo principal
@@ -46,9 +46,9 @@
 
 | Área | Testes |
 |---|---|
-| Limite, dedupe, vazio e erro de outra palavra | `tests/test_usecases.py`. |
-| HTTP, retry e negócio | `tests/test_collector.py`. |
-| Argumentos, saída e parcial | `tests/test_cli.py`. |
+| Limite, dedupe, vazio e erro de outra palavra | `tests/unit/test_usecases.py`. |
+| HTTP, retry e negócio | `tests/integration/test_collector.py`. |
+| Argumentos, saída e parcial | `tests/integration/test_cli.py`. |
 
 ## Relacionados
 

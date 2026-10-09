@@ -18,13 +18,14 @@ alerta instalado por esta documentação.
 
 | Se mudar… | Examinar primeiro | Conferir depois |
 |---|---|---|
-| Versão, chave ou sal | `infrastructure/app_identity.py` | Assinatura, contextos e vetor em `test_mobile_api.py`. |
-| Corpo/query de uma rota móvel | `infrastructure/mobile_client.py` | Todos os parâmetros assinados; nomes, valores vazios e contexto por rota. |
-| Host/status/retry | `mobile_client.py`, `web_client.py`, `http_utils.py` | Ordem, número de tentativas, rate limit e não-retry de negócio. |
-| Campos recebidos | `mapping.py`, `http_utils.py` | Schemas, tolerância, páginas anteriores e fixtures sanitizadas. |
-| Limites/cursor/dedupe | `application/`, `domain/identity.py`, `Cursor` | Políticas diferentes de busca, perfil, raízes e respostas. |
-| Saída/diagnóstico | `entrypoints/export_commands.py`, `export_files.py`, modelos | JSON normal/parcial, exit code, arquivos UTF-8 e erro de escrita. |
-| Recursos HTTP | `container.py`, adapters | Fechamento em sucesso, erro e falha de `close()`. |
+| Versão, chave ou sal | `infrastructure/kwai/mobile/app_identity.py` | Assinatura, contextos e vetor em `test_mobile_api.py`. |
+| Corpo/query de uma rota móvel | `infrastructure/kwai/mobile/adapter.py` | Todos os parâmetros assinados; nomes, valores vazios e contexto por rota. |
+| Host/status/retry | `kwai/mobile/client.py`, `kwai/web/client.py`, `http_utils.py` | Ordem, número de tentativas, rate limit e não-retry de negócio. |
+| Campos recebidos | `mapping.py`, `coercion.py`, `http_utils.py` | Schemas, tolerância, páginas anteriores e fixtures sanitizadas. |
+| Formato de URL do Kwai | `domain/services/post_urls.py` | URLs mapeadas, extração de id/dono e diretório de exportação. |
+| Limites/cursor/dedupe | `application/use_cases/`, `domain/services/identity.py`, `domain/services/replies.py`, `Cursor` | Políticas diferentes de busca, perfil, raízes e respostas. |
+| Saída/diagnóstico | `entrypoints/cli/export_commands.py`, `export_files.py`, modelos | JSON normal/parcial, exit code, arquivos UTF-8 e erro de escrita. |
+| Recursos HTTP | `infrastructure/container/container.py`, adapters | Fechamento em sucesso, erro e falha de `close()`. |
 
 Não mova assinatura para o domínio: é conhecimento técnico da API externa.
 Uma troca de camada ou contrato precisa de avaliação própria, não de um ajuste
@@ -94,19 +95,19 @@ poetry run pytest --cov=src --cov-report=term-missing
 
 | Mudança | Testes prioritários |
 |---|---|
-| Assinatura, versão ou corpo móvel | `tests/test_mobile_api.py`. |
-| Request/response de perfil e comentário | `tests/test_mobile_captures.py`, `tests/test_collector.py`. |
-| JSON inválido e cursores | `tests/test_response_validation.py`, `tests/test_pagination.py`. |
-| Limites, dedupe, parcial e divergência de total | `tests/test_usecases.py`. |
-| Texto, métricas, datas, URLs e vínculos | `tests/test_parsers.py`, `tests/test_domain.py`. |
-| CLI, erros da API e escrita de parcial | `tests/test_cli.py`, `tests/test_cli_exports.py`. |
-| Composição e uso do context manager | `tests/test_collector.py`; `tests/test_cli_exports.py` simula falha de fechamento na CLI nova. |
-| Contrato e amostras | `tests/test_models.py`, `tests/test_samples.py`. |
+| Assinatura, versão ou corpo móvel | `tests/integration/test_mobile_api.py`. |
+| Request/response de perfil e comentário | `tests/integration/test_mobile_captures.py`, `tests/integration/test_collector.py`. |
+| JSON inválido e cursores | `tests/integration/test_response_validation.py`, `tests/unit/test_pagination.py`. |
+| Limites, dedupe, parcial e divergência de total | `tests/unit/test_usecases.py`. |
+| Texto, métricas, datas, URLs e vínculos | `tests/unit/test_parsers.py`, `tests/unit/test_domain.py`. |
+| CLI, erros da API e escrita de parcial | `tests/integration/test_cli.py`, `tests/integration/test_cli_exports.py`. |
+| Composição e uso do context manager | `tests/integration/test_collector.py`; `tests/integration/test_cli_exports.py` simula falha de fechamento na CLI nova. |
+| Contrato e amostras | `tests/unit/test_models.py`, `tests/unit/test_samples.py`. |
 
 Exemplo de regressão focada:
 
 ```bash
-poetry run pytest tests/test_mobile_api.py tests/test_mobile_captures.py tests/test_response_validation.py
+poetry run pytest tests/integration/test_mobile_api.py tests/integration/test_mobile_captures.py tests/integration/test_response_validation.py
 ```
 
 Teste novo deve reproduzir a falha observada antes do reparo. Para falhas de
@@ -184,9 +185,9 @@ precisam ser redescobertos para o build sendo investigado.
 
 | Arquivo | Ajuste possível |
 |---|---|
-| `src/infrastructure/app_identity.py` | Versão, chave, sal, UA, se a nova evidência exigir. |
-| `src/infrastructure/mobile_client.py` | Contexto ou corpo específico da rota. |
-| `tests/test_mobile_api.py` | Novo vetor independente e identidade associada. |
+| `src/infrastructure/kwai/mobile/app_identity.py` | Versão, chave, sal, UA, se a nova evidência exigir. |
+| `src/infrastructure/kwai/mobile/adapter.py` | Contexto ou corpo específico da rota. |
+| `tests/integration/test_mobile_api.py` | Novo vetor independente e identidade associada. |
 | `tests/fixtures/` e `test_mobile_captures.py` | Regressão sanitizada de campos/cursor que mudaram. |
 | Guias da assinatura, protocolo, pesquisa e README | Estado validado e limitações, sem promessas de compatibilidade universal. |
 

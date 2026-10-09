@@ -28,7 +28,7 @@ independente; assume manutenção de canonicalização e identidade do app.
 
 ## Decisão
 
-Usar `src/infrastructure/signature.py`, com identidade em `app_identity.py`.
+Usar `src/infrastructure/kwai/mobile/signature.py`, com identidade em `app_identity.py`.
 Combinar query/corpo, excluir exatamente `sig`, `__NS_sig3`, `__NStokensig`,
 ordenar chaves, concatenar sem separadores e acrescentar `SIG_SALT` antes do MD5.
 Não implementar `sig3` nem inserir daemon/`.so` na coleta.
@@ -51,7 +51,7 @@ recupere um sal desconhecido. `atlasSign(path + sig)` não é fórmula comprovad
 ## Consequências e verificação
 
 Não existe variável de `.env` para trocar sal automaticamente. Alterar versão
-exige validar o conjunto e o vetor real independente em `tests/test_mobile_api.py`.
+exige validar o conjunto e o vetor real independente em `tests/integration/test_mobile_api.py`.
 Capturas de laboratório não entram no runtime.
 
 [Assinatura](../internals/signature.md) · [Protocolo móvel](../internals/mobile-api.md) ·

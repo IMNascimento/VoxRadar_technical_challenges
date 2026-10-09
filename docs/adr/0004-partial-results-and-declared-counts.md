@@ -58,9 +58,9 @@ Páginas de comentários com item inválido são rejeitadas inteiras, sem descar
 páginas anteriores. Quantidade desconhecida/negativa não gera comparação.
 Exit `0` pode coexistir com warning de discrepância, sem significar completude.
 
-Implementação: `src/application/exceptions.py`, `collect_comments.py`,
-`src/entrypoints/cli.py`. Testes: `tests/test_usecases.py`,
-`tests/test_response_validation.py`, `tests/test_cli.py`.
+Implementação: `src/application/exceptions.py`, `collect_comment_versions.py`,
+`src/entrypoints/cli/app.py`. Testes: `tests/unit/test_usecases.py`,
+`tests/integration/test_response_validation.py`, `tests/integration/test_cli.py`.
 
 [RN-010](../business-rules/data-contract.md#rn-010--total-declarado-não-significa-completude) ·
 [RN-012 a RN-015](../business-rules/failure-policy.md) ·

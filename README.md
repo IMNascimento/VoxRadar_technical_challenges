@@ -152,7 +152,7 @@ Veja [`.env.example`](.env.example). Nenhum segredo é obrigatório.
 Os testes **não dependem de rede** (HTTP mockado com `respx`) nem de nenhum
 runtime externo, e o backoff do retry é neutralizado nos testes (sem `sleep`
 real). Há também testes de regressão com recortes sanitizados de capturas reais
-da API móvel (`tests/test_mobile_captures.py`).
+da API móvel (`tests/integration/test_mobile_captures.py`).
 
 ```bash
 poetry run pytest                 # suíte completa
@@ -169,17 +169,19 @@ poetry run mypy src    # tipagem estática (strict)
 
 ## Arquitetura
 
-Pacote organizado em camadas (DDD-leve), com a composição dos serviços no
-`container.py`:
+Pacote organizado em DDD tático com Ports & Adapters; a composição dos serviços
+fica em `infrastructure/container/container.py`. Detalhes em
+[Arquitetura](docs/internals/architecture.md).
 
 | Camada | Módulos principais | Papel |
 |--------|--------------------|-------|
-| `shared/` | `logging_config`, `utils/` (`coercion`, `timestamps`, `ratelimit`) | Utilitários técnicos reutilizáveis: configuração de logging e helpers de coerção, timestamps ISO-8601 e rate limit. |
-| `domain/` | `identity`, `business_result`, `constants`, `exceptions`, `value_objects/` | Identidade e chaves de dedup, validação da regra de negócio `result`, constantes (`BASE_URL`), exceções e value objects (`Handle`, `UserId`, `PhotoId`, `Cursor`, `IsoTimestamp`). |
-| `application/` | `models`, `ports`, `pagination`, `exceptions`, `search_posts`, `collect_user_posts`, `collect_comments` | Contrato `pydantic` da saída (schemas), portas (*seams* de I/O), a paginação por `pcursor` compartilhada, a exceção de coleta interrompida (carrega o resultado parcial) e os três casos de uso. |
-| `infrastructure/` | `web_client`, `mobile_client`, `app_identity`, `signature`, `mapping`, `http_utils`, `exceptions` | Acesso HTTP (web: busca; móvel anônima: comentários e perfil), identidade do app (versão, `client_key` e sal do `sig`, que valem juntos), assinatura `sig` (MD5 + sal), conversão dos dados crus, JSON/retry e exceções de transporte/inesperadas. |
-| `entrypoints/` | `cli.py`, `export_commands.py`, `export_files.py` | CLI e comandos de exportação organizada por diretório. |
-| raiz | `config.py`, `container.py`, `__main__.py` | Configuração tipada via ambiente, composição dos serviços (`build_services`) e ponto de entrada. |
+| `shared/` | `logging/logging_config` | Configuração de logging compartilhada pelas camadas. |
+| `domain/` | `entities/`, `value_objects/`, `enums/`, `exceptions/`, `services/` (`identity`, `post_urls`, `replies`, `pagination`, `post_ordering`) | Entidades do contrato (`Post`, `Comment`, `ExpandedComment`), value objects (`Handle`, `UserId`, `PhotoId`, `PostReference`, `Cursor`, `IsoTimestamp`), `PostSortBy`, exceções e regras puras de identidade/dedup, formato das URLs do Kwai, expansão e contagem de respostas, paginação e ordenação. |
+| `application/` | `ports/`, `dtos/` (`commands`, `pages`, `collection_result`), `use_cases/` (`search_posts`, `collect_user_posts`, `collect_comment_versions`, `collect_profile_bundle`), `exceptions` | Portas de saída (`ISearchApiPort`, `IProfileApiPort`, `ICommentApiPort`, `IClockPort`), comandos de entrada validados, páginas e resultado por unidade, casos de uso e a exceção de coleta interrompida (carrega o resultado parcial). |
+| `infrastructure/` | `container/`, `clock/`, `kwai/` (`web/` e `mobile/` com `client` e `adapter`; `app_identity`, `signature`, `mapping`, `coercion`, `http_utils`, `business_result`, `ratelimit`, `exceptions`) | Composição, relógio do sistema e acesso HTTP (web: busca; móvel anônima: comentários e perfil), com cliente (sessão, rate limit, retry) separado do adapter (rota, contexto, tamanho de página), identidade do app (versão, `client_key` e sal do `sig`, que valem juntos), assinatura `sig` (MD5 + sal), conversão dos dados crus (escalares e timestamps em ms), JSON/retry, validação do campo `result`, relógio do sistema e exceções de transporte, resposta inesperada e erro de negócio. |
+| `entrypoints/` | `cli/` (`app`, `export_commands`, `export_files`) | CLI e comandos de exportação organizada por diretório. |
+| `config/` | `settings` | Configuração tipada via ambiente (`Settings`). |
+| raiz | `__main__.py` | Ponto de entrada (`python -m src` e script `kwai-collector`). |
 
 ## Decisões de engenharia
 
@@ -208,9 +210,9 @@ justificada:
   equivalentes): sem login, sem cookies e sem `__NS_sig3`. A requisição é
   assinada com o `sig` — MD5 dos parâmetros (query + corpo) ordenados, sem
   separador, com valores já decodificados, + sal `382700b563f4` — reproduzido em
-  Python puro em `infrastructure/signature.py` (`compute_sig`) e validado por **match exato**
-  contra o `sig` do app real (vetor de regressão em `tests/test_mobile_api.py`). O sal
-  só foi provado para a versão do app em `infrastructure/app_identity.py`;
+  Python puro em `infrastructure/kwai/mobile/signature.py` (`compute_sig`) e validado por **match exato**
+  contra o `sig` do app real (vetor de regressão em `tests/integration/test_mobile_api.py`). O sal
+  só foi provado para a versão do app em `infrastructure/kwai/mobile/app_identity.py`;
   não há garantia para outras versões. Um teste associa versão e vetor.
   As **respostas** de cada comentário vêm de `POST /rest/o/comment/sublist`
   (mesmo contexto e assinatura; `rootCommentId` + `client_key`) e são expostas
@@ -266,7 +268,7 @@ usa exclusivamente `getInfo` e `feed/profile` móveis.
 
 ## Aderência ao contrato
 
-A saída é validada pelos modelos `pydantic` (`application/models.py`). Campos ausentes
+A saída segue as entidades do domínio (`domain/entities/`). Campos ausentes
 viram `null` (nunca inventados); métricas de engajamento só são `0` quando o
 valor é comprovadamente zero. Datas em ISO-8601 (UTC, sufixo `Z`);
 `coletado_em` marca o momento da coleta.

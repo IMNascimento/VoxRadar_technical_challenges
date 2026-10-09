@@ -23,9 +23,9 @@ flowchart TD
 
 ## Etapas
 
-1. **Extrair:** `extract_photo_id` reconhece id em `/video/` ou `/photo/`.
-   Isso não valida o host completo da string de entrada.
-2. **Coletar raízes:** `_collect_roots` pagina com tamanho 50, contando itens
+1. **Extrair:** `parse_post_reference` reconhece id em `/video/` ou `/photo/` e
+   o dono no segmento `@perfil`. Isso não valida o host completo da string de entrada.
+2. **Coletar raízes:** `collect_roots` pagina com tamanho 50, contando itens
    crus inclusive repetidos antes de deduplicar.
 3. **Selecionar saída:** sem expansão, devolver raízes `Comment`. Com expansão,
    concluir primeiro a coleta de raízes e percorrer a lista resultante.
@@ -45,8 +45,8 @@ O limite de raízes não limita respostas. `comments --limit 2 --with-comments-r
 muitos itens e chamadas. Total declarado é preservado na raiz; a saída é plana.
 Previews de `subCommentsMap` não são mesclados à sublista.
 
-`CollectCommentVersions` compartilha a mecânica `_CommentReader` com
-`CollectComments`, sem duplicar consultas de raízes. Entrega versões separadas
+`CollectCommentVersions` usa a mecânica `_CommentReader`, sem duplicar
+consultas de raízes entre as versões. Entrega versões separadas
 e etapa de falha explícita; não infere a origem pelo conteúdo do parcial.
 Em `profile`, uma postagem com erro não impede as próximas. Veja [CLI](../guides/cli.md).
 
@@ -61,5 +61,5 @@ Em `profile`, uma postagem com erro não impede as próximas. Veja [CLI](../guid
 [UC-003](../use-cases/uc-003-collect-comments.md) · [Paginação](./pagination.md) ·
 [Schemas](../reference/schemas.md) · [ADR de parcial/contagens](../adr/0004-partial-results-and-declared-counts.md).
 
-Verificação: `tests/test_usecases.py`, `tests/test_mobile_captures.py`,
-`tests/test_response_validation.py`.
+Verificação: `tests/unit/test_usecases.py`, `tests/integration/test_mobile_captures.py`,
+`tests/integration/test_response_validation.py`.

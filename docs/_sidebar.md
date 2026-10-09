@@ -24,6 +24,7 @@
   - [0002 — Assinatura local](./adr/0002-local-signature.md)
   - [0003 — Portas e paginação](./adr/0003-page-ports-and-pagination.md)
   - [0004 — Parcial e contagens](./adr/0004-partial-results-and-declared-counts.md)
+  - [0005 — Entidades como saída](./adr/0005-entities-as-output-contract.md)
 - [Assinatura e sal](./internals/signature.md)
 - [Protocolo móvel](./internals/mobile-api.md)
 - [Schemas](./reference/schemas.md)

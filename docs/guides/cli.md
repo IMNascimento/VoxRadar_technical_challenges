@@ -216,5 +216,5 @@ Em shell POSIX:
 echo $?
 ```
 
-Verificação offline: `tests/test_cli_exports.py`, com HTTP simulado, diretórios
+Verificação offline: `tests/integration/test_cli_exports.py`, com HTTP simulado, diretórios
 temporários e falhas de coleta, publicação de arquivos e fechamento.

@@ -27,7 +27,7 @@ uma sessão autenticada nem garante autorização em outras rotas.
 
 | Constante | Valor atual | Onde vive |
 |---|---|---|
-| `APP_VERSION` | `10.3.20.539600` | `src/infrastructure/app_identity.py` |
+| `APP_VERSION` | `10.3.20.539600` | `src/infrastructure/kwai/mobile/app_identity.py` |
 | `CLIENT_KEY` | `3c2cd3f3` | Mesmo módulo. |
 | `SIG_SALT` | `382700b563f4` | Mesmo módulo. |
 | `APP_USER_AGENT` | `kwai-android` | Mesmo módulo. |
@@ -37,7 +37,7 @@ funcionalmente para essa versão. Não foi provado que qualquer atualização ex
 sal novo nem que o mesmo sal funcione para toda versão. Atualizar `appver` sem
 validar o conjunto pode quebrar a compatibilidade.
 
-[`compute_sig`](../../src/infrastructure/signature.py) importa `SIG_SALT`; não o lê
+[`compute_sig`](../../src/infrastructure/kwai/mobile/signature.py) importa `SIG_SALT`; não o lê
 do `.env`, não recebe sal como argumento e não chama o app. Não mantenha uma
 segunda implementação da fórmula em outro módulo.
 
@@ -91,8 +91,8 @@ Este exemplo usa dados fictícios, não uma requisição móvel suficiente para 
 ```python
 import hashlib
 
-from src.infrastructure.app_identity import SIG_SALT
-from src.infrastructure.signature import compute_sig
+from src.infrastructure.kwai.mobile.app_identity import SIG_SALT
+from src.infrastructure.kwai.mobile.signature import compute_sig
 
 params = {"count": "2", "kpn": "KWAI", "pcursor": "", "photoId": "123"}
 canonical = "count=2kpn=KWAIpcursor=photoId=123"
@@ -108,7 +108,7 @@ se autorizado, uma resposta real da rota alvo.
 
 ## Da assinatura ao envio
 
-O adapter monta os valores como strings; `_signed_query()` copia o contexto
+O adapter monta os valores como strings; `_app_query()` copia o contexto
 base, gera `timestamp` em milissegundos e um UUID novo para `session_id` nas
 rotas de contexto completo. O perfil mínimo não usa esse helper.
 
@@ -136,7 +136,7 @@ versão. Não adicione um token copiado, um serviço pago ou um daemon nativo co
 
 | Evidência | O que demonstra | O que não demonstra |
 |---|---|---|
-| Vetor real em `tests/test_mobile_api.py` | Match do digest do request capturado: `a1f8385e9b1e3ac7006c4b9d84be2014`. | Que o servidor estará disponível amanhã. |
+| Vetor real em `tests/integration/test_mobile_api.py` | Match do digest do request capturado: `a1f8385e9b1e3ac7006c4b9d84be2014`. | Que o servidor estará disponível amanhã. |
 | Teste de exclusão dos tokens | `sig3` não modifica o digest calculado. | Algoritmo ou validade de `sig3`. |
 | Teste de ordenação e alteração de parâmetro | Determinismo e sensibilidade à entrada. | Validação de todos os contextos possíveis. |
 | Teste de versão × contexto | Identidade e vetor de referência não mudam independentemente sem acusar divergência. | Derivação automática de um sal novo. |

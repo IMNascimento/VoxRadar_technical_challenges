@@ -52,8 +52,8 @@ de rejeição universal do contexto completo, pois o app também entregou feeds 
 
 ## Consequências e verificação
 
-Implementada em `src/container.py`, `src/infrastructure/mobile_client.py` e
-`src/application/collect_user_posts.py`. Testes: `test_mobile_api.py`,
+Implementada em `src/infrastructure/container/container.py`, `src/infrastructure/kwai/mobile/adapter.py` e
+`src/application/use_cases/collect_user_posts.py`. Testes: `test_mobile_api.py`,
 `test_collector.py`, `test_usecases.py`, todos em `tests/`.
 
 [RN-001](../business-rules/collection.md#rn-001--fonte-por-operação) ·

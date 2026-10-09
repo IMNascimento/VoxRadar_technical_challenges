@@ -28,8 +28,8 @@ sequenceDiagram
 
 ## Etapas
 
-1. **Configurar:** `src/config.py` carrega `Settings`; a CLI trata configuração inválida.
-2. **Compor:** `src/container.py` cria clientes web e móvel, mesmo se só um
+1. **Configurar:** `src/config/settings.py` carrega `Settings`; a CLI trata configuração inválida.
+2. **Compor:** `src/infrastructure/container/container.py` cria clientes web e móvel, mesmo se só um
    comando for usado. O móvel é compartilhado por perfil e comentários.
 3. **Executar:** casos de uso validam entrada, geram carimbo comum e consultam portas.
 4. **Persistir:** a CLI escreve cada lista normal ou tenta escrever `partial`
@@ -54,5 +54,5 @@ postagem durante a execução; não escreve a cada página nem salva checkpoint.
 [API Python](../reference/api-reference.md) · [Arquitetura](../internals/architecture.md) ·
 [ADR de parcial](../adr/0004-partial-results-and-declared-counts.md).
 
-Verificação: `tests/test_collector.py`, `tests/test_cli.py`, `tests/test_cli_exports.py`.
+Verificação: `tests/integration/test_collector.py`, `tests/integration/test_cli.py`, `tests/integration/test_cli_exports.py`.
 Esta última simula falha de fechamento após a persistência da CLI nova.

@@ -4,9 +4,12 @@
 
 ## Escopo e hosts
 
-O [`MobileApiAdapter`](../../src/infrastructure/mobile_client.py) implementa as
-portas de perfil e comentários. Os nomes abaixo são os usados no código atual,
-não nomes de uma API oficial estável.
+O [`MobileApiAdapter`](../../src/infrastructure/kwai/mobile/adapter.py) implementa as
+portas de perfil e comentários sobre o
+[`MobileApiClient`](../../src/infrastructure/kwai/mobile/client.py), que guarda
+os hosts abaixo, a sessão, o rate limit, a assinatura e a escada de gateways.
+O adapter decide rota, contexto, corpo e tamanho de página. Os nomes abaixo são
+os usados no código atual, não nomes de uma API oficial estável.
 
 | Ordem | Constante | Host |
 |---|---|---|
@@ -42,7 +45,7 @@ envia; não prova que cada campo seja obrigatório no servidor:
 | Ambiente/dispositivo | `mod`, `sys`, `ud`, `ds`, `vid`, `egid`, `did`. |
 | Idioma/região | `language`, `lon`, `lat`, `mcc`, `countryInfo`, `country_code`, `time_zone`, `bucket`. |
 | Rede/contexto | `oc`, `net`, `netScore`. |
-| Gerados por chamada lógica | `timestamp` e `session_id`, adicionados por `_signed_query()`. |
+| Gerados por chamada lógica | `timestamp` e `session_id`, adicionados por `_app_query()`. |
 
 Os valores completos estão no código; não é necessário duplicar identificadores
 de dispositivo em manuais ou capturas compartilhadas. O cliente usa o contexto
@@ -73,7 +76,7 @@ Query: `PROFILE_MINIMAL_QUERY = {"kpn": "KWAI", "appver": APP_VERSION}`.
 | Campo do corpo | Montagem |
 |---|---|
 | `user_id` | Id numérico resolvido, não handle. |
-| `count` | String do tamanho pedido; o caso de uso pede 30. |
+| `count` | `PROFILE_PAGE_SIZE` do adapter (`30`). |
 | `privacy` | `public`. |
 | `lang` | `en`. |
 | `pcursor` | Vazio na primeira chamada; depois o cursor recebido. |
@@ -90,7 +93,7 @@ Corpo: cópia de `DEFAULT_BODY` mais campos dinâmicos.
 | Campo | Valor |
 |---|---|
 | `photoId` | Id extraído da URL. |
-| `count` | String do tamanho pedido; normalmente 50. |
+| `count` | `COMMENTS_PAGE_SIZE` do adapter (`50`). |
 | `pcursor` | Cursor corrente. |
 | `order` | `desc`. |
 | `photoPageType`, `requestType` | `0`, `3`. |
@@ -108,7 +111,7 @@ determinam o fim. A expansão de respostas consulta `sublist` separadamente.
 | `rootCommentId` | Id do comentário raiz. |
 | `order` | `desc`. |
 | `pcursor` | Cursor da sublista, independente do cursor das raízes. |
-| `count` | Limitado no adapter a 1–100; o caso de uso pede 100. |
+| `count` | `SUBLIST_PAGE_SIZE` do adapter (`100`, o máximo aceito). |
 | `client_key`, `sig` | Identidade atual e digest. |
 
 Não copie todo `DEFAULT_BODY` para essa rota: o corpo atual de sublista não

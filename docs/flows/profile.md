@@ -22,7 +22,7 @@ flowchart LR
 1. **Normalizar:** `normalize_handle` prepara o `Handle`; entrada inválida aborta.
 2. **Resolver:** `MobileApiAdapter.resolve_user` usa `getInfo` com contexto
    completo, `userIds=@handle`, assinatura local e a escada de gateways.
-3. **Paginar:** `CollectUserPosts` usa `iter_pages` e pede 30 por página;
+3. **Paginar:** `CollectUserPosts` usa `iter_pages`; o adapter pede 30 por página;
    `fetch_profile_page` usa o contexto mínimo validado do feed.
 4. **Mapear:** o adapter devolve `ProfilePage` com posts e continuação.
 5. **Acumular:** dedupe por id/URL; o limite conta posts únicos.
@@ -53,4 +53,4 @@ enriquecido. Layout e códigos de saída estão em [CLI](../guides/cli.md).
 [UC-002](../use-cases/uc-002-collect-user-posts.md) ·
 [Paginação](./pagination.md) · [ADR móvel](../adr/0001-mobile-profile-and-comments.md).
 
-Verificação: `tests/test_usecases.py`, `tests/test_mobile_api.py`, `tests/test_collector.py`.
+Verificação: `tests/unit/test_usecases.py`, `tests/integration/test_mobile_api.py`, `tests/integration/test_collector.py`.

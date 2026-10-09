@@ -42,4 +42,4 @@ não cria páginas adicionais da mesma palavra.
 [UC-001](../use-cases/uc-001-search-posts.md) · [Schemas](../reference/schemas.md) ·
 [Protocolo e resiliência](../internals/mobile-api.md).
 
-Verificação: `tests/test_usecases.py`, `tests/test_collector.py`.
+Verificação: `tests/unit/test_usecases.py`, `tests/integration/test_collector.py`.

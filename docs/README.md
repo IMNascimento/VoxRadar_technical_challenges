@@ -88,12 +88,13 @@ docs/
 │   ├── uc-001-search-posts.md
 │   ├── uc-002-collect-user-posts.md
 │   └── uc-003-collect-comments.md
-└── adr/                      # Quatro decisões retrospectivas
+└── adr/                      # Cinco decisões retrospectivas
     ├── README.md
     ├── 0001-mobile-profile-and-comments.md
     ├── 0002-local-signature.md
     ├── 0003-page-ports-and-pagination.md
-    └── 0004-partial-results-and-declared-counts.md
+    ├── 0004-partial-results-and-declared-counts.md
+    └── 0005-entities-as-output-contract.md
 ```
 
 **Regra** define condição e consequência. **Fluxo** mostra como componentes

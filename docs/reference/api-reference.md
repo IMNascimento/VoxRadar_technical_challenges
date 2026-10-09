@@ -9,25 +9,28 @@ ou instalação local. Não há facade `KwaiClient`, métodos assíncronos, API 
 própria, promessa de estabilidade de SDK ou pacote publicado assumido por esta
 documentação. Os imports efetivos são `src.*`.
 
-Para uso normal, prefira [`build_services`](../../src/container.py). Só construa
+Para uso normal, prefira [`build_services`](../../src/infrastructure/container/container.py). Só construa
 adapters diretamente quando precisar controlar uma página ou testar uma porta.
 Métodos iniciados por `_` são detalhes de implementação, não extensões públicas.
 
 ## Integração de alto nível
 
 O exemplo abaixo faz rede quando executado. `@parkourcity` é um alvo ilustrativo.
-Ele devolve modelos; a serialização e a persistência ficam com o programa chamador.
+Ele devolve entidades (dataclasses imutáveis do domínio); a serialização e a
+persistência ficam com o programa chamador.
 
 ```python
-from src.config import Settings
-from src.container import build_services
+from dataclasses import asdict
 
-settings = Settings()
-with build_services(settings) as services:
-    posts = services.user_posts.execute("@parkourcity", limit=2)
+from src.application.dtos.commands import ProfileCollectionCommand
+from src.config.settings import Settings
+from src.infrastructure.container.container import build_services
 
-payload = [post.model_dump() for post in posts]
-print(payload)
+command = ProfileCollectionCommand.create("@parkourcity", limit=2)
+with build_services(Settings()) as services:
+    (posts,) = services.profile_bundle.execute(command)
+
+print([asdict(post) for post in posts.items])
 ```
 
 `Services` fecha os dois clientes ao sair do `with`, mesmo quando a coleta lança
@@ -44,14 +47,12 @@ coleta documentada é síncrona e sequencial.
 
 | Símbolo | Módulo | Interface |
 |---|---|---|
-| `Settings` | `src.config` | Campos `request_delay`, `http_timeout`, `max_retries`, `user_agent`. |
-| `build_services(settings)` | `src.container` | Retorna `Services`, criando um adapter web e um móvel. |
-| `Services.search_posts` | `src.container` | Instância de `SearchPosts`. |
-| `Services.user_posts` | `src.container` | Instância de `CollectUserPosts`. |
-| `Services.comments` | `src.container` | Instância de `CollectComments`. |
-| `Services.comment_versions` | `src.container` | Instância de `CollectCommentVersions`. |
-| `Services.profile_bundle` | `src.container` | Instância de `CollectProfileBundle`. |
-| `Services.close()` | `src.container` | Encerra os recursos HTTP. Preferir o context manager. |
+| `Settings` | `src.config.settings` | Campos `request_delay`, `http_timeout`, `max_retries`, `user_agent`. |
+| `build_services(settings)` | `src.infrastructure.container.container` | Retorna `Services`, criando os clientes e adapters web e móvel e o relógio. |
+| `Services.search_posts` | `src.infrastructure.container.container` | Instância de `SearchPosts`. |
+| `Services.comment_versions` | `src.infrastructure.container.container` | Instância de `CollectCommentVersions`. |
+| `Services.profile_bundle` | `src.infrastructure.container.container` | Instância de `CollectProfileBundle`. |
+| `Services.close()` | `src.infrastructure.container.container` | Encerra os recursos HTTP. Preferir o context manager. |
 
 Configurações explícitas são úteis para testes, por exemplo
 `Settings(request_delay=0, max_retries=0)`. Não use ausência de espera como
@@ -61,22 +62,35 @@ recomendação de coleta em volume; veja [Primeiros passos](../guides/getting-st
 
 | Classe | Construtor | Método | Retorno |
 |---|---|---|---|
-| `SearchPosts` | `SearchPosts(api: SearchApiPort)` | `execute(keywords: list[str], *, limit: int = 20, sort_by: str \| None = None)` | `list[Post]`. |
-| `CollectUserPosts` | `CollectUserPosts(api: ProfileApiPort)` | `execute(user: str, *, limit: int \| None = None, sort_by: str \| None = None)` | `list[Post]`. |
-| `CollectComments` | `CollectComments(api: CommentApiPort)` | `execute(post_url: str, *, limit: int \| None = None, with_replies: bool = False)` | `list[Comment]`; com respostas, itens `ExpandedComment`. |
+| `SearchPosts` | `SearchPosts(api: ISearchApiPort, clock: IClockPort)` | `execute(command: SearchCommand)` | `CollectionResult[Post]`. |
+| `CollectCommentVersions` | `CollectCommentVersions(api: ICommentApiPort, clock: IClockPort)` | `execute(command: CommentCollectionCommand)` | `Iterator[CollectionResult[Comment]]`. |
+| `CollectProfileBundle` | `CollectProfileBundle(profile_api: IProfileApiPort, comment_api: ICommentApiPort, clock: IClockPort)` | `execute(command: ProfileCollectionCommand)` | `Iterator[CollectionResult[Post \| Comment]]`. |
 
-`SearchPosts` rejeita lista de palavras vazia. `CollectUserPosts` normaliza o
-handle antes de resolver seu id. `CollectComments` extrai o id de `/video/` ou
-`/photo/` da string recebida. Esse extrator não valida host completo: não use
-seu sucesso como certificação de origem de uma URL.
+`CollectUserPosts(api, clock).execute(command: ProfileCollectionCommand)` devolve
+`list[Post]` e é usado internamente por `CollectProfileBundle`; falhas sobem como
+exceção (veja abaixo). `IClockPort` (método `now() -> IsoTimestamp`) fica em
+`src.application.ports.clock_port`; o container injeta `SystemClock`, e testes
+injetam um relógio fixo. Cada execução lê o relógio uma única vez.
 
-As validações `min=1` dos limites são da CLI. A API Python dos casos de uso não
-repete essa validação; passe `limit` positivo ou `None` onde permitido. Não há
-contrato útil documentado aqui para limites negativos/zero fora da CLI.
+### Comandos de entrada
+
+Os comandos vivem em [`src.application.dtos.commands`](../../src/application/dtos/commands.py)
+e validam a entrada **ao serem criados**, antes de qualquer requisição. O caso de
+uso recebe os valores já validados e não repete a validação.
+
+| Comando | Fábrica | Campos validados |
+|---|---|---|
+| `SearchCommand` | `create(keywords, *, limit=20, sort_by=None)` | `keywords` não vazio; `limit` positivo; `sort_by` → `PostSortBy`. |
+| `CommentCollectionCommand` | `create(post_url, *, limit=None, with_comments=True, with_replies=False)` | URL → `PostReference` (id de `/video/` ou `/photo/`); `limit` positivo. |
+| `ProfileCollectionCommand` | `create(user, *, limit=None, comments_limit=None, with_comments=False, with_replies=False, sort_by=None)` | Conta → `Handle` normalizado; limites positivos; `sort_by` → `PostSortBy`. |
+
+Entrada inválida lança `InvalidInputError` na criação do comando. O extrator de
+id da URL não valida host completo: não use seu sucesso como certificação de
+origem de uma URL. A CLI também valida limites com `min=1`.
 
 Limites, deduplicação, páginas vazias e ciclos de cursor estão em
-[Fluxos](../flows/README.md). Retornos são listas materializadas; não há streaming público
-de itens nesses métodos.
+[Fluxos](../flows/README.md). Os itens de cada resultado são tuplas materializadas;
+não há streaming público de itens individuais.
 
 `sort_by` aceita `likes`, `comments`, `shares` ou `views` e rejeita outros valores
 com `InvalidInputError` antes de fazer rede. Ordena o conjunto obtido após o limite,
@@ -85,17 +99,14 @@ preserva a ordem original. Empates são estáveis; contagens desconhecidas ficam
 no fim. Se a coleta falhar, o parcial de posts segue a mesma ordenação, preservando
 a causa. Os modelos e métricas não são modificados.
 
-### Coleta combinada
+### Resultados
 
-`CollectCommentVersions.execute(post_url, *, limit=None, with_comments=True,
-with_replies=False)` e `CollectProfileBundle.execute(user, options)` entregam
-iteradores de `CollectionResult`, não itens individuais. `ProfileCollectionOptions`
-fica em `application/collect_profile_bundle.py`, com `limit`, `comments_limit`,
-`with_comments`, `with_replies` e `sort_by`. Esses novos fluxos validam limites positivos.
-
-`CollectionResult` contém `kind`, `items`, `stage`, `post_url` e `error`.
-`stage` é atribuído no ponto da coleta (`posts`, `roots`, `replies`), nunca
-deduzido de `parent_id` ou do tipo do parcial. Raízes são coletadas uma vez;
+`CollectionResult[T]` contém `kind`, `items: tuple[T, ...]`, `post` e `error`.
+`post` é um `PostReference` (`photo_id` e `url`) e é obrigatório quando `kind`
+não é `posts`, exceto em resultado de falha cuja postagem não pôde ser
+identificada (senão, `ValueError`). `CollectionResult.failed(kind, exc, item_type)`
+monta o resultado de falha com o parcial tipado. `stage` é derivado de `kind` (`posts`→`posts`, `comments`→`roots`,
+`comments-replies`→`replies`), nunca de `parent_id` ou do tipo do parcial. Raízes são coletadas uma vez;
 duas versões podem ser entregues separadamente. Falhas operacionais aparecem
 no resultado; entrada inválida continua sendo erro. O consumidor deve verificar
 `error` ao consumir **todos** os resultados, sem interpretar o iterador como
@@ -105,88 +116,94 @@ garantia de sucesso. A CLI grava as unidades antes de fechar os serviços.
 
 | Exceção | Import | Situação |
 |---|---|---|
-| `KwaiCollectorError` | `src.domain.exceptions` | Base dos erros esperados da coleta. |
-| `InvalidInputError` | Mesmo módulo | Handle, id/URL ou entrada reconhecida como inválida. |
-| `KwaiApiError` | Mesmo módulo | Erro de negócio; atributo `result` guarda o código recebido. |
-| `KwaiTransportError` | `src.infrastructure.exceptions` | Transporte/status sem recuperação disponível. |
+| `KwaiCollectorError` | `src.domain.exceptions.domain_exceptions` | Base dos erros esperados da coleta. |
+| `InvalidInputError` | Mesmo módulo | Handle, id/URL, limite ou entrada reconhecida como inválida. |
+| `InvalidValueError` | Mesmo módulo | Id de comentário/usuário ou timestamp fora da invariante do value object. |
+| `RepeatedCursorError` | Mesmo módulo | Continuação já vista (regra de paginação do domínio). |
+| `KwaiTransportError` | `src.infrastructure.kwai.exceptions` | Transporte/status sem recuperação disponível. |
 | `UnexpectedResponseError` | Mesmo módulo | JSON ou estrutura da resposta não aceitos. |
-| `RepeatedCursorError` | `src.application.exceptions` | Continuação já vista. |
-| `CollectionInterruptedError` | Mesmo módulo | Falha após obter itens; `partial` e `__cause__` preservam contexto. |
+| `KwaiApiError` | Mesmo módulo | Erro de negócio do protocolo (campo `result`); atributo `result` guarda o código recebido. |
+| `CollectionInterruptedError` | `src.application.exceptions` | Falha após obter itens; `partial` e `__cause__` preservam contexto. |
 
-Capture `CollectionInterruptedError` **antes** de `KwaiCollectorError`, pois a
-primeira herda da segunda. `partial` é uma tupla de `BaseModel`, não uma tupla
-estaticamente especializada para cada comando. Não suponha um tipo de item
-sem verificar ou serializar pelo contrato comum.
+Os casos de uso expostos por `Services` não lançam falhas de coleta: elas
+aparecem em `CollectionResult.error`, com o parcial em `items`. Quando a falha
+interrompe uma coleta que já tinha itens, `error` é um `CollectionInterruptedError`
+cuja causa original fica em `__cause__`. `CollectUserPosts`, usado diretamente,
+lança essas exceções; capture `CollectionInterruptedError` **antes** de
+`KwaiCollectorError`, pois a primeira herda da segunda. Seu `partial` é uma tupla
+de `object`; `partial_items(exc, Post)`, de `src.application.exceptions`, devolve
+os itens tipados (vazio para falhas sem parcial).
 
 Este exemplo também faz rede. Mostra explicitamente como diferenciar parcial
 de sucesso; não transforma a falha em resultado completo:
 
 ```python
-from src.application.exceptions import CollectionInterruptedError
-from src.config import Settings
-from src.container import build_services
-from src.domain.exceptions import KwaiCollectorError
+from dataclasses import asdict
 
-try:
-    with build_services(Settings()) as services:
-        posts = services.user_posts.execute("@parkourcity", limit=2)
-except CollectionInterruptedError as error:
-    payload = [item.model_dump() for item in error.partial]
-    print({"complete": False, "items": payload, "error": str(error.__cause__)})
-except KwaiCollectorError:
-    raise
-else:
-    print({"complete": True, "items": [post.model_dump() for post in posts]})
+from src.application.dtos.commands import SearchCommand
+from src.config.settings import Settings
+from src.infrastructure.container.container import build_services
+
+with build_services(Settings()) as services:
+    result = services.search_posts.execute(SearchCommand.create(["sports"], limit=2))
+
+payload = [asdict(post) for post in result.items]
+print({"complete": result.error is None, "items": payload, "error": str(result.error)})
 ```
 
 `complete` acima é um sinal **do chamador** sobre conclusão sem interrupção;
 não pertence ao JSON do coletor e não prova completude na plataforma. A CLI não
 inclui esse envelope: grava apenas a lista e sinaliza falha com exit `1`.
 
-Erros de validação Pydantic, I/O do chamador e exceções inesperadas não são todos
-convertidos em `KwaiCollectorError`. Defina sua política de fronteira separadamente.
+Erros de I/O do chamador e exceções inesperadas não são todos convertidos em
+`KwaiCollectorError`. Defina sua política de fronteira separadamente.
 
 ## Adapters e portas de uma página
 
-| Adapter | Porta implementada | Uso |
-|---|---|---|
-| `KwaiWebAdapter(settings)` | `SearchApiPort` | Um lote por palavra-chave. |
-| `MobileApiAdapter(settings)` | `ProfileApiPort`, `CommentApiPort` | Resolução de usuário e páginas móveis. |
+| Cliente | Adapter | Porta implementada | Uso |
+|---|---|---|---|
+| `KwaiWebClient(settings)` (`src.infrastructure.kwai.web.client`) | `KwaiWebAdapter(client)` (`...web.adapter`) | `ISearchApiPort` | Um lote por palavra-chave. |
+| `MobileApiClient(settings)` (`src.infrastructure.kwai.mobile.client`) | `MobileApiAdapter(client)` (`...mobile.adapter`) | `IProfileApiPort`, `ICommentApiPort` | Resolução de usuário e páginas móveis. |
 
-Ambos expõem `close()` e não implementam context manager próprio. Se instanciados
-diretamente, use `try/finally` para fechar. `Services` é o context manager disponível.
+O cliente é dono da sessão HTTP, do rate limit, do retry e (no móvel) da
+assinatura e da escada de gateways; o adapter conhece rota, contexto, corpo,
+tamanho de página e mapeamento. Só os clientes expõem `close()` e não implementam
+context manager próprio. Se instanciados diretamente, use `try/finally` para
+fechá-los. `Services` é o context manager disponível.
 
 As assinaturas abaixo são **referência de interface**, não código para executar:
 
 ```text
-SearchApiPort.search_posts(keyword: str, count: int, *, collected_at: IsoTimestamp)
+ISearchApiPort.search_posts(keyword: str, *, limit: int, collected_at: IsoTimestamp)
     -> list[Post]
-ProfileApiPort.resolve_user(handle: Handle) -> UserId
-ProfileApiPort.fetch_profile_page(user_id: UserId, *, cursor: Cursor,
-    count: int, collected_at: IsoTimestamp) -> ProfilePage
-CommentApiPort.fetch_page(photo_id: PhotoId, *, cursor: Cursor, count: int,
-    postagem_url: str, collected_at: IsoTimestamp) -> CommentPage
-CommentApiPort.fetch_sub_page(photo_id: PhotoId, *, root_comment_id: CommentId,
-    cursor: Cursor, count: int, postagem_url: str,
-    collected_at: IsoTimestamp) -> SubCommentPage
+IProfileApiPort.resolve_user(handle: Handle) -> UserId
+IProfileApiPort.fetch_profile_page(user_id: UserId, *, cursor: Cursor,
+    collected_at: IsoTimestamp) -> ProfilePage
+ICommentApiPort.fetch_page(post: PostReference, *, cursor: Cursor,
+    collected_at: IsoTimestamp) -> CommentPage
+ICommentApiPort.fetch_sub_page(post: PostReference, *, root_comment_id: CommentId,
+    cursor: Cursor, collected_at: IsoTimestamp) -> SubCommentPage
 ```
 
 Uma chamada de página não percorre a lista toda. A aplicação decide continuar.
-Os `Protocol` são seams de I/O para substituir uma porta por fake sem fazer HTTP;
+O tamanho de página é decisão do adapter, que conhece o endpoint
+(`COMMENTS_PAGE_SIZE`, `SUBLIST_PAGE_SIZE` e `PROFILE_PAGE_SIZE` no adapter móvel;
+`SEARCH_MAX_COUNT` no web, que limita o lote pedido por palavra-chave).
+As portas são classes abstratas (`ABC`) que servem de seam de I/O: um fake que herda a porta a substitui sem fazer HTTP;
 não são um sistema de plugins registrável em runtime.
 
 ### Objetos de página
 
-Todos vivem em [`src.application.ports`](../../src/application/ports.py) como
+Todos vivem em [`src.application.dtos.pages`](../../src/application/dtos/pages.py) como
 dataclasses `frozen=True`; as listas internas não viram coleções profundamente imutáveis.
 
 | Objeto | Campos |
 |---|---|
 | `ProfilePage` | `posts: list[Post]`, `next_cursor: Cursor`. |
 | `CommentPage` | `comments: list[RootComment]`, `next_cursor: Cursor`. |
-| `RootComment` | `comentario: Comment`, `respostas_declaradas: int \| None`. |
+| `RootComment` | `comment: Comment`, `declared_replies: int \| None`. |
 | `SubCommentPage` | `comments: list[SubComment]`, `next_cursor: Cursor`. |
-| `SubComment` | `comentario: Comment`, `reply_to_id`, `reply_to_usuario`. |
+| `SubComment` | `comment: Comment`, `reply_to_id`, `reply_to_usuario`. |
 
 ### Value objects
 
@@ -195,8 +212,9 @@ dataclasses `frozen=True`; as listas internas não viram coleções profundament
 | `Handle` | Não vazio, sem `@`, espaço ou `/`, sem espaço de borda. Normalizar via `normalize_handle` quando a entrada for do usuário. |
 | `PhotoId` / `UserId` | String para a qual `isdigit()` é verdadeiro; não são inteiros de máquina. |
 | `CommentId` | Não vazio, sem espaço de borda; não exige formato numérico. |
-| `Cursor` | Encapsula string e reconhece sentinelas de fim. Não calcula a próxima página. |
-| `IsoTimestamp` | String que casa com o padrão `YYYY-MM-DDTHH:MM:SSZ`; valida a forma por regex, não a existência da data no calendário. |
+| `Cursor` | Encapsula string; vazio marca o fim. Os sentinelas do Kwai são traduzidos pelo adapter. Não calcula a próxima página. |
+| `IsoTimestamp` | String que casa com o padrão `YYYY-MM-DDTHH:MM:SSZ`; valida a forma por regex, não a existência da data no calendário. `from_datetime` converte um instante com fuso para esse formato. |
+| `PostReference` | `photo_id: PhotoId`, `url` e `owner` (handle do segmento `@perfil`, quando houver); construída por `parse_post_reference` (`domain/services/post_urls.py`), que extrai o id de `/video/` ou `/photo/`. |
 
 Tipos vivem em [`domain/value_objects`](../../src/domain/value_objects).
 As validações de `isdigit()` não equivalem a uma restrição ASCII de ids.
@@ -207,7 +225,10 @@ As validações de `isdigit()` não equivalem a uma restrição ASCII de ids.
 |---|---|
 | `compute_sig(params: Mapping[str, str]) -> str` | Fórmula em [Assinatura](../internals/signature.md). |
 | `parse_feed`, `parse_comment`, `parse_sub_comment` | Mapeamento em [Schemas](./schemas.md). |
-| `iter_pages(fetch, *, is_empty, source)` | Gerador preguiçoso de páginas; não persiste cursor. |
+| `iter_pages(fetch, *, is_empty, source)` | Serviço de domínio (`src.domain.services.pagination`): gerador preguiçoso de páginas; não persiste cursor. |
+| `unique_posts()`, `unique_comments()` | Serviço de domínio (`src.domain.services.identity`): `UniqueItems` que mantém a primeira ocorrência por chave; uma instância compartilhada deduplica entre lotes. |
+| `declares_replies`, `replies_diverge` | Serviço de domínio (`src.domain.services.replies`): elegibilidade da raiz para expansão e divergência entre total declarado e entregue. |
+| `post_url`, `profile_url`, `parse_post_reference` | Serviço de domínio (`src.domain.services.post_urls`): única fonte do formato das URLs públicas do Kwai. |
 
 Para integração mantenha dependência nos casos de uso; helpers e adapters estão
 expostos pelo código, mas acoplam o chamador a detalhes de manutenção do protocolo.
