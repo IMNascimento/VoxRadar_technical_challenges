@@ -8,9 +8,10 @@ O Kwai Collector é uma aplicação Python síncrona de linha de comando para
 coletar postagens por palavra-chave, postagens de um perfil e comentários de
 uma postagem. A CLI exporta listas JSON em pastas organizadas por execução.
 
-A organização segue DDD tático com Ports & Adapters: as portas de saída são
-classes abstratas (`ABC`, prefixo `I` e sufixo `Port`) definidas na aplicação, e
-a infraestrutura as implementa com adapters HTTP concretos. O domínio concentra
+A organização segue DDD tático com Ports & Adapters: as portas de entrada e
+saída são classes abstratas (`ABC`, prefixo `I` e sufixo `Port`) definidas na
+aplicação. Casos de uso implementam as portas de entrada; adapters HTTP
+implementam as portas de saída. O domínio concentra
 as entidades `Post` e `Comment`, identificadores e as regras de identidade,
 paginação e ordenação; a aplicação valida a entrada em comandos e orquestra a
 coleta; a infraestrutura conhece o formato, os endpoints e os tamanhos de
@@ -45,13 +46,13 @@ src/
 │   ├── enums/post_sort_by.py          # Contagem usada na ordenação
 │   ├── exceptions/domain_exceptions.py # Base, entrada/valor inválidos e cursor repetido
 │   └── services/
-│       ├── identity.py                # Normalização de handle, chaves e UniqueItems (dedup)
+│       ├── identity.py                # UniqueItems: primeira ocorrência por dedup_key
 │       ├── post_urls.py               # Formato das URLs do Kwai: montar e extrair id/dono
 │       ├── replies.py                 # Elegibilidade para expansão e divergência de contagem
-│       ├── pagination.py              # Continuação, fim e laço de cursor (iter_pages)
+│       ├── pagination.py              # Decisão pura de continuação, fim e laço de cursor
 │       └── post_ordering.py           # Ordenação por contagem
 ├── application/
-│   ├── ports/                         # ISearchApiPort, IProfileApiPort, ICommentApiPort, IClockPort
+│   ├── ports/                         # Portas de entrada dos casos de uso e de saída (API/relógio)
 │   ├── dtos/
 │   │   ├── commands.py                # Comandos de entrada validados
 │   │   ├── pages.py                   # Páginas devolvidas pelas portas
@@ -61,7 +62,8 @@ src/
 │   │   ├── collect_user_posts.py
 │   │   ├── collect_comment_versions.py # Raízes e expansão de respostas
 │   │   └── collect_profile_bundle.py  # Coleta combinada por postagem
-│   └── exceptions.py                  # Interrupção com resultado parcial
+│   ├── pagination.py                  # iter_pages: coordenação da busca sob demanda
+│   └── exceptions.py                  # Falha de serviço externo e interrupção com parcial
 ├── infrastructure/
 │   ├── container/container.py         # Composição e encerramento dos recursos
 │   ├── clock/system_clock.py          # SystemClock (IClockPort)
@@ -98,7 +100,7 @@ mapeamento para entidades), que implementa a porta usando o cliente.
 | Unidade | Responsabilidade | Dependências relevantes |
 |---|---|---|
 | `domain/` | Definir as entidades do contrato, validar identificadores, formar chaves e manter a primeira ocorrência na deduplicação, montar e interpretar URLs do Kwai, decidir expansão e divergência de respostas, continuação/fim/laço da paginação e ordenar postagens. | Biblioteca padrão. |
-| `application/` | Declarar as portas de saída; validar a entrada em comandos; orquestrar paginação, limites e as regras do domínio; devolver `CollectionResult` com o parcial e a falha. | Domínio e `shared/` (logging). |
+| `application/` | Declarar as portas de entrada e saída; validar a entrada em comandos; orquestrar paginação, limites e as regras do domínio; devolver `CollectionResult` com o parcial e a falha. | Domínio e `shared/` (logging). |
 | `infrastructure/` | Implementar as portas: fazer HTTP, assinar requisições móveis, escolher tamanhos de página, interpretar o campo `result`, converter respostas e fornecer o relógio. | Aplicação (portas e DTOs), domínio, configuração e `shared/`. |
 | `infrastructure/container/` | Único lugar que instancia clientes, adapters e relógio; injeta as portas nos casos de uso e fecha os clientes. | Configuração, casos de uso e infraestrutura concreta. |
 | `entrypoints/` | Montar comandos a partir dos argumentos, chamar os casos de uso pelo container, escrever JSON e converter falhas em códigos de saída. | DTOs da aplicação; entidades, enum, exceções e `PostReference` do domínio; configuração e container. Nunca serviços de domínio nem infraestrutura concreta. |
@@ -110,12 +112,14 @@ As setas abaixo representam dependências de código, não a ordem de execução
 flowchart TD
     CLI[entrypoints / CLI] --> Container[infrastructure / container]
     CLI --> Dtos[application / DTOs]
+    CLI --> InputPorts[application / portas de entrada]
     CLI --> Domain[domain]
     Container --> UseCases[application / casos de uso]
     Container --> Adapters[infrastructure / clientes e adapters]
     Adapters --> Ports[application / portas e DTOs]
     Adapters --> Domain
     UseCases --> Ports
+    UseCases --> InputPorts
     UseCases --> Domain
     Ports --> Domain
     CLI --> Config[config / Settings]
@@ -129,7 +133,10 @@ flowchart TD
 O domínio não importa nada de fora dele. Os casos de uso dependem das portas
 (classes abstratas) e nunca dos adapters, nem de Pydantic. A CLI só alcança a
 infraestrutura pelo container e não chama serviços de domínio: a validação da
-entrada fica nos comandos. Trocar um adapter não exige mudança na aplicação.
+entrada fica nos comandos. A CLI usa as portas de entrada expostas por
+`Services`; `CollectProfileBundle` também recebe suas coletas por essas
+interfaces, sem importar as implementações. Trocar um adapter não exige
+mudança na aplicação.
 
 ## Composição e ciclo de vida
 
@@ -137,10 +144,14 @@ entrada fica nos comandos. Trocar um adapter não exige mudança na aplicação.
 `KwaiWebClient` e um `MobileApiClient` (donos das sessões HTTP), os adapters
 `KwaiWebAdapter` e `MobileApiAdapter` sobre eles e um `SystemClock`. O adapter web
 é injetado em `SearchPosts`; o móvel implementa as duas portas e é injetado em
-`CollectCommentVersions` e `CollectProfileBundle`. Todos recebem o relógio.
+`CollectUserPosts` e `CollectCommentVersions`, que recebem o relógio.
+`CollectProfileBundle` recebe essas duas coletas pelas portas
+`ICollectUserPostsPort` e `ICollectCommentVersionsPort`; a mesma instância de
+`CollectCommentVersions` serve `comment_versions` e o bundle.
 
-`Services` expõe `search_posts`, `comment_versions` e `profile_bundle`,
-e funciona como context manager. Cada unidade é persistida
+`Services` expõe `search_posts`, `comment_versions` e `profile_bundle` pelos
+contratos `ISearchPostsPort`, `ICollectCommentVersionsPort` e
+`ICollectProfileBundlePort`, e funciona como context manager. Cada unidade é persistida
 durante o bloco `with`, antes do fechamento.
 O encerramento usa `ExitStack` para tentar fechar ambos os clientes, mesmo
 quando um `close()` falha.
@@ -255,13 +266,17 @@ flowchart LR
 
 ### Paginação compartilhada
 
-[`iter_pages`](../../src/domain/services/pagination.py) começa com cursor vazio e
+[`iter_pages`](../../src/application/pagination.py) começa com cursor vazio e
 busca a próxima página somente quando o consumidor a solicita. Uma página
 vazia ou um cursor vazio ([`Cursor`](../../src/domain/value_objects/cursor.py))
 encerra a iteração. Os sentinelas de fim do Kwai (`no_more`, `nomore`, `-1` e
 `0`) são protocolo e ficam na infraestrutura:
 [`read_cursor`](../../src/infrastructure/kwai/http_utils.py) os traduz para
 cursor vazio, então o domínio não conhece o formato de nenhuma origem.
+A aplicação mantém os cursores vistos e executa as consultas; a função pura
+[`get_continuation_cursor`](../../src/domain/services/pagination.py) recebe a
+continuação, a indicação de página vazia e os cursores vistos para decidir se
+a coleta continua. O domínio não executa o callback de busca.
 
 Um cursor de continuação já visto causa `RepeatedCursorError`. A página é
 entregue ao consumidor antes dessa verificação; itens dela podem integrar o
@@ -274,10 +289,10 @@ extra. Não há checkpoint persistente de cursor nem retomada entre execuções.
 |---|---|
 | Busca web | Retry para falhas de transporte e HTTP `429`, `500`, `502`, `503`, `504`. Outros erros HTTP não são repetidos. |
 | API móvel | Tenta `api.kwai-pro.com`, `api1-us.kwai-pro.com` e `api2-us.kwaipros.com`, nessa ordem. Falha HTTP ou corpo que não seja objeto JSON leva ao próximo gateway. |
-| Retry móvel | Se todos os gateways falharem, repete a escada inteira até esgotar as tentativas extras configuradas. |
+| Retry móvel | Se todos os gateways falharem e ao menos uma falha for transitória (transporte, `429`/`5xx`, corpo não-JSON), repete a escada inteira até esgotar as tentativas extras configuradas. Só status permanentes (ex.: `403`) encerram sem nova rodada. |
 | Backoff | Exponencial, de 0,5 a 8 segundos; `max_retries` conta tentativas extras depois da primeira. |
 | Erro de negócio | `result` diferente de `1`, quando não nulo, gera `KwaiApiError`. Ausência de `result` é tolerada. Erro de negócio não aciona retry nem troca de gateway. |
-| Rate limit | Cada adapter tem seu próprio `RateLimiter`. Na busca, espera a cada tentativa; na API móvel, espera no início de cada rodada da escada, não entre hosts dessa rodada. |
+| Rate limit | Cada cliente tem seu próprio `RateLimiter`. Na busca, espera a cada tentativa; na API móvel, espera antes de cada requisição, inclusive entre hosts da mesma rodada. |
 | Mapeamento de feeds | Feeds sem dados suficientes para montar a URL são ignorados com aviso; os demais itens continuam. |
 
 A API móvel usa requisições assinadas, sem fluxo de login implementado.

@@ -29,8 +29,10 @@ mecânica de continuação, preservando as políticas de cada operação.
 
 Adapters retornam `ProfilePage`, `CommentPage` ou `SubCommentPage` pelas portas
 da aplicação (`IProfileApiPort`, `ICommentApiPort`, classes abstratas).
-`iter_pages`, serviço de domínio, controla continuação sob demanda; casos de uso
-acumulam, deduplicam, aplicam limite e tratam interrupções.
+`iter_pages`, na aplicação, coordena a busca sob demanda e mantém os cursores
+vistos. `get_continuation_cursor`, serviço puro de domínio, decide fim e
+repetição sem executar callbacks de I/O nem alterar a coleção recebida.
+Casos de uso acumulam, deduplicam, aplicam limite e tratam interrupções.
 
 Uma página é entregue antes da checagem de sua continuação. Ao atingir limite,
 o consumidor pode parar sem fazer chamada extra. A resposta mapeada vazia é
@@ -52,7 +54,7 @@ como consequência desse gerador interno.
 ## Consequências e verificação
 
 Implementação em `src/application/ports/`, `src/application/dtos/pages.py`,
-`src/domain/services/pagination.py` e casos de uso.
+`src/application/pagination.py`, `src/domain/services/pagination.py` e casos de uso.
 Testes em `tests/unit/test_pagination.py`, `tests/unit/test_usecases.py`,
 `tests/integration/test_collector.py`. Casos de uso não importam adapters concretos.
 

@@ -177,7 +177,7 @@ fica em `infrastructure/container/container.py`. Detalhes em
 |--------|--------------------|-------|
 | `shared/` | `logging/logging_config` | Configuração de logging compartilhada pelas camadas. |
 | `domain/` | `entities/`, `value_objects/`, `enums/`, `exceptions/`, `services/` (`identity`, `post_urls`, `replies`, `pagination`, `post_ordering`) | Entidades do contrato (`Post`, `Comment`, `ExpandedComment`), value objects (`Handle`, `UserId`, `PhotoId`, `PostReference`, `Cursor`, `IsoTimestamp`), `PostSortBy`, exceções e regras puras de identidade/dedup, formato das URLs do Kwai, expansão e contagem de respostas, paginação e ordenação. |
-| `application/` | `ports/`, `dtos/` (`commands`, `pages`, `collection_result`), `use_cases/` (`search_posts`, `collect_user_posts`, `collect_comment_versions`, `collect_profile_bundle`), `exceptions` | Portas de saída (`ISearchApiPort`, `IProfileApiPort`, `ICommentApiPort`, `IClockPort`), comandos de entrada validados, páginas e resultado por unidade, casos de uso e a exceção de coleta interrompida (carrega o resultado parcial). |
+| `application/` | `ports/`, `dtos/` (`commands`, `pages`, `collection_result`), `use_cases/` (`search_posts`, `collect_user_posts`, `collect_comment_versions`, `collect_profile_bundle`), `pagination`, `exceptions` | Portas de entrada dos casos de uso e de saída (`ISearchApiPort`, `IProfileApiPort`, `ICommentApiPort`, `IClockPort`), comandos de entrada validados, coordenação da busca de páginas, resultado por unidade e a exceção de coleta interrompida (carrega o resultado parcial). |
 | `infrastructure/` | `container/`, `clock/`, `kwai/` (`web/` e `mobile/` com `client` e `adapter`; `app_identity`, `signature`, `mapping`, `coercion`, `http_utils`, `business_result`, `ratelimit`, `exceptions`) | Composição, relógio do sistema e acesso HTTP (web: busca; móvel anônima: comentários e perfil), com cliente (sessão, rate limit, retry) separado do adapter (rota, contexto, tamanho de página), identidade do app (versão, `client_key` e sal do `sig`, que valem juntos), assinatura `sig` (MD5 + sal), conversão dos dados crus (escalares e timestamps em ms), JSON/retry, validação do campo `result`, relógio do sistema e exceções de transporte, resposta inesperada e erro de negócio. |
 | `entrypoints/` | `cli/` (`app`, `export_commands`, `export_files`) | CLI e comandos de exportação organizada por diretório. |
 | `config/` | `settings` | Configuração tipada via ambiente (`Settings`). |
@@ -229,7 +229,8 @@ justificada:
 
 - **Retry com backoff** (`KWAI_MAX_RETRIES`): na busca, em `429`/`5xx`/falha de
   rede; na API móvel, repetindo a escada de gateways inteira quando **todos**
-  falham no transporte. Erro de negócio (`result != 1`) **nunca** é repetido.
+  falham e ao menos uma falha é transitória (rede, `429`/`5xx`, corpo não-JSON).
+  Status permanente (ex.: `403`) e erro de negócio (`result != 1`) **nunca** são repetidos.
 - **Resultado parcial**: se a coleta falha no meio (rede, cursor em laço), os
   itens anteriores ficam no parcial em memória. A CLI tenta gravá-los e sai com
   código `1`; uma falha de escrita impede a garantia de persistência. Sem nada

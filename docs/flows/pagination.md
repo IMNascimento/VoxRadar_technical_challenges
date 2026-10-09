@@ -19,10 +19,11 @@ flowchart TD
 
 ## Etapas
 
-1. **Iniciar:** `iter_pages` começa com cursor vazio e consulta a primeira página.
+1. **Iniciar:** `iter_pages`, na aplicação, começa com cursor vazio e consulta a primeira página.
 2. **Entregar:** `yield page` acontece antes da checagem de continuação.
 3. **Encerrar:** página mapeada vazia ou cursor de fim encerra a iteração.
-4. **Detectar loop:** continuação já vista gera `RepeatedCursorError`.
+4. **Detectar loop:** `get_continuation_cursor`, no domínio, recebe os dados da
+   página e os cursores vistos; continuação já vista gera `RepeatedCursorError`.
 5. **Continuar:** guardar continuação e buscar só quando o consumidor solicitar.
 6. **Preservar:** casos de uso convertem falhas cobertas com itens em parcial;
    a CLI decide a escrita e sinaliza falha pelo código de saída.
