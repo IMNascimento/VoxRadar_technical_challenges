@@ -169,10 +169,10 @@ class CollectCommentVersions:
         except KwaiCollectorError as exc:
             yield CollectionResult.failed("comments", exc, Comment, post=post)
             return
-        if command.with_comments:
+        if command.versions.has_roots:
             items = tuple(root.comment for root in roots)
             yield CollectionResult("comments", items, post=post)
-        if not command.with_replies:
+        if not command.versions.has_replies:
             return
         try:
             expanded = self._reader.expand_replies(scope, roots)

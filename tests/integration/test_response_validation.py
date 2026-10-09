@@ -11,6 +11,7 @@ import respx
 
 from src.application.dtos.commands import (
     CommentCollectionCommand,
+    CommentVersions,
     ProfileCollectionCommand,
     SearchCommand,
 )
@@ -207,7 +208,7 @@ def test_malformed_reply_page_preserves_roots(settings: Settings) -> None:
     )
     client = MobileApiClient(settings)
     adapter = MobileApiAdapter(client)
-    command = CommentCollectionCommand.create(URL, with_comments=False, with_replies=True)
+    command = CommentCollectionCommand.create(URL, versions=CommentVersions.REPLIES)
     try:
         (result,) = CollectCommentVersions(adapter, _clock).execute(command)
     finally:

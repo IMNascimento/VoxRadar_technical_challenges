@@ -12,6 +12,7 @@ from pydantic import ValidationError
 from ...application.dtos.collection_result import CollectionResult
 from ...application.dtos.commands import (
     CommentCollectionCommand,
+    CommentVersions,
     ProfileCollectionCommand,
     SearchCommand,
 )
@@ -146,8 +147,9 @@ def collect_profile(
             user,
             limit=limit,
             comments_limit=comments_limit,
-            with_comments=with_comments,
-            with_replies=with_comments_replies,
+            comment_versions=CommentVersions.from_flags(
+                roots=with_comments, replies=with_comments_replies
+            ),
             sort_by=sort_by,
         )
     )
@@ -172,8 +174,7 @@ def collect_comments(
         lambda: CommentCollectionCommand.create(
             url,
             limit=limit,
-            with_comments=not with_comments_replies,
-            with_replies=with_comments_replies,
+            versions=CommentVersions.REPLIES if with_comments_replies else CommentVersions.ROOTS,
         )
     )
     _run_exports(

@@ -2,14 +2,15 @@
 
 O entrypoint monta o comando a partir dos argumentos crus com ``create``; o
 caso de uso recebe os valores já validados (``Handle``, ``PostReference``,
-``PostSortBy``) e não repete a validação. As regras de identidade e de
-ordenação vêm dos serviços de domínio; aqui só se convertem os argumentos.
+``PostSortBy``, ``CommentVersions``) e não repete a validação. As regras de
+identidade e de ordenação vêm do domínio; aqui só se convertem os argumentos.
 """
 
 from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
+from enum import StrEnum
 
 from ...domain.enums.post_sort_by import PostSortBy
 from ...domain.exceptions.domain_exceptions import InvalidInputError
@@ -26,6 +27,35 @@ def _ensure_positive_limit(limit: int | None, *, name: str) -> None:
     """Rejeita um limite informado que não seja positivo; ``None`` é sem teto."""
     if limit is not None and limit < 1:
         raise InvalidInputError(f"{name} deve ser positivo: {limit}")
+
+
+class CommentVersions(StrEnum):
+    """Versões de comentários entregues por postagem; sempre ao menos uma."""
+
+    ROOTS = "roots"
+    REPLIES = "replies"
+    ALL = "all"
+
+    @property
+    def has_roots(self) -> bool:
+        """Indica se a versão só de raízes é entregue."""
+        return self is not CommentVersions.REPLIES
+
+    @property
+    def has_replies(self) -> bool:
+        """Indica se a versão com raízes e respostas é entregue."""
+        return self is not CommentVersions.ROOTS
+
+    @classmethod
+    def from_flags(cls, *, roots: bool, replies: bool) -> CommentVersions | None:
+        """Converte as duas opções da CLI; ``None`` quando nenhuma versão foi pedida."""
+        if roots and replies:
+            return cls.ALL
+        if roots:
+            return cls.ROOTS
+        if replies:
+            return cls.REPLIES
+        return None
 
 
 @dataclass(frozen=True)
@@ -63,8 +93,7 @@ class CommentCollectionCommand:
 
     post: PostReference
     limit: int | None = None
-    with_comments: bool = True
-    with_replies: bool = False
+    versions: CommentVersions = CommentVersions.ROOTS
 
     def __post_init__(self) -> None:
         _ensure_positive_limit(self.limit, name=_COMMENTS_LIMIT_NAME)
@@ -75,26 +104,27 @@ class CommentCollectionCommand:
         post_url: str,
         *,
         limit: int | None = None,
-        with_comments: bool = True,
-        with_replies: bool = False,
+        versions: CommentVersions = CommentVersions.ROOTS,
     ) -> CommentCollectionCommand:
         """Valida a URL da postagem e o limite de raízes.
 
         Raises:
             InvalidInputError: se a URL ou o ``limit`` forem inválidos.
         """
-        return cls(parse_post_reference(post_url), limit, with_comments, with_replies)
+        return cls(parse_post_reference(post_url), limit, versions)
 
 
 @dataclass(frozen=True)
 class ProfileCollectionCommand:
-    """Postagens de um perfil e, opcionalmente, versões de comentários por postagem."""
+    """Postagens de um perfil e, opcionalmente, versões de comentários por postagem.
+
+    ``comment_versions`` ``None`` dispensa a coleta de comentários.
+    """
 
     handle: Handle
     limit: int | None = None
     comments_limit: int | None = None
-    with_comments: bool = False
-    with_replies: bool = False
+    comment_versions: CommentVersions | None = None
     sort_by: PostSortBy | None = None
 
     def __post_init__(self) -> None:
@@ -108,8 +138,7 @@ class ProfileCollectionCommand:
         *,
         limit: int | None = None,
         comments_limit: int | None = None,
-        with_comments: bool = False,
-        with_replies: bool = False,
+        comment_versions: CommentVersions | None = None,
         sort_by: str | None = None,
     ) -> ProfileCollectionCommand:
         """Normaliza a conta e valida limites e ordenação.
@@ -121,7 +150,6 @@ class ProfileCollectionCommand:
             Handle.parse(user),
             limit,
             comments_limit,
-            with_comments,
-            with_replies,
+            comment_versions,
             validate_sort_by(sort_by),
         )

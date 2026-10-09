@@ -19,6 +19,7 @@ import pytest
 from src.application.dtos.collection_result import CollectionResult
 from src.application.dtos.commands import (
     CommentCollectionCommand,
+    CommentVersions,
     ProfileCollectionCommand,
     SearchCommand,
 )
@@ -87,9 +88,8 @@ def _comments(
     api: FakeCommentApi, *, limit: int | None = None, with_replies: bool = False
 ) -> CollectionResult[Comment]:
     """A única versão pedida: raízes, ou raízes com respostas."""
-    command = CommentCollectionCommand.create(
-        POST_URL, limit=limit, with_comments=not with_replies, with_replies=with_replies
-    )
+    versions = CommentVersions.REPLIES if with_replies else CommentVersions.ROOTS
+    command = CommentCollectionCommand.create(POST_URL, limit=limit, versions=versions)
     (result,) = CollectCommentVersions(api, _Clock()).execute(command)
     return result
 
@@ -287,6 +287,25 @@ def test_search_rejeita_palavra_chave_em_branco_antes_de_consultar_porta(
         _search(api, list(keywords))
 
     assert api.search_calls == []
+
+
+@pytest.mark.parametrize(
+    ("roots", "replies", "expected"),
+    [
+        (False, False, None),
+        (True, False, CommentVersions.ROOTS),
+        (False, True, CommentVersions.REPLIES),
+        (True, True, CommentVersions.ALL),
+    ],
+)
+def test_comment_versions_converte_as_opcoes_da_cli(
+    roots: bool, replies: bool, expected: CommentVersions | None
+) -> None:
+    versions = CommentVersions.from_flags(roots=roots, replies=replies)
+
+    assert versions is expected
+    if versions is not None:
+        assert (versions.has_roots, versions.has_replies) == (roots, replies)
 
 
 def test_search_limite_atingido_interrompe_palavras_chave_restantes() -> None:
@@ -866,7 +885,7 @@ def test_bundle_isola_postagem_sem_id_como_falha_de_comentarios() -> None:
         ]
     )
     comments = FakeCommentApi([CommentPage([_root(_comment("c1", STAMP))], Cursor(""))])
-    command = ProfileCollectionCommand.create("perfil", with_comments=True)
+    command = ProfileCollectionCommand.create("perfil", comment_versions=CommentVersions.ROOTS)
     results = list(CollectProfileBundle(profile, comments, _Clock()).execute(command))
 
     assert [(r.kind, r.post is not None, r.error is not None) for r in results] == [

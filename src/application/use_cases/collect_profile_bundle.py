@@ -43,15 +43,15 @@ class CollectProfileBundle:
         """
         result = self._collect_posts(command)
         yield result
-        if not (command.with_comments or command.with_replies):
+        versions = command.comment_versions
+        if versions is None:
             return
         for post in result.items:
             try:
                 comments = CommentCollectionCommand(
                     reference_post(post),
                     limit=command.comments_limit,
-                    with_comments=command.with_comments,
-                    with_replies=command.with_replies,
+                    versions=versions,
                 )
             except KwaiCollectorError as exc:
                 yield CollectionResult("comments", (), error=exc)
