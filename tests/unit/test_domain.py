@@ -2,18 +2,16 @@
 
 from __future__ import annotations
 
+from dataclasses import asdict
 from datetime import UTC, datetime, timedelta, timezone
 
 import pytest
 
+from src.domain.entities.comment import Comment, CommentAuthor
 from src.domain.entities.post import Engagement, Post
+from src.domain.enums.post_sort_by import PostSortBy
 from src.domain.exceptions.domain_exceptions import InvalidInputError, InvalidValueError
-from src.domain.services.identity import (
-    UniqueItems,
-    comment_dedup_key,
-    post_dedup_key,
-    unique_posts,
-)
+from src.domain.services.identity import UniqueItems, unique_comments, unique_posts
 from src.domain.services.post_urls import (
     extract_photo_id,
     parse_post_reference,
@@ -41,22 +39,54 @@ def test_cursor_is_end_false_para_cursors_reais() -> None:
 # --- identity ---------------------------------------------------------------
 
 
+def _post(post_id: str | None, url: str) -> Post:
+    return Post(id=post_id, url=url, engajamento=Engagement(), coletado_em="x")
+
+
+def _comment(comment_id: str | None, author_id: str | None, text: str) -> Comment:
+    return Comment(
+        id=comment_id,
+        postagem_url="u",
+        autor=CommentAuthor(id=author_id),
+        texto=text,
+        coletado_em="x",
+    )
+
+
 def test_post_dedup_key_prefere_o_id_e_cai_para_url() -> None:
-    assert post_dedup_key("1", "u") == "1"
-    assert post_dedup_key(None, "u") == "u"
+    assert _post("1", "u").dedup_key == "1"
+    assert _post(None, "u").dedup_key == "u"
 
 
 def test_comment_dedup_key_prefere_o_id() -> None:
-    assert comment_dedup_key("c_1", "a_1", "oi") == "c_1"
+    assert _comment("c_1", "a_1", "oi").dedup_key == "c_1"
 
 
 def test_comment_dedup_key_fallback_autor_id_texto() -> None:
-    assert comment_dedup_key(None, "a_1", "oi") == "3:a_1oi"
+    assert _comment(None, "a_1", "oi").dedup_key == "3:a_1oi"
+    assert _comment(None, None, "oi").dedup_key == "0:oi"
 
 
 def test_comment_dedup_key_nao_colide_com_separador_ambiguo() -> None:
-    assert comment_dedup_key(None, "a:b", "c") != comment_dedup_key(None, "a", "b:c")
-    assert comment_dedup_key(None, "a\x00b", "c") != comment_dedup_key(None, "a", "b\x00c")
+    assert _comment(None, "a:b", "c").dedup_key != _comment(None, "a", "b:c").dedup_key
+    assert _comment(None, "a\x00b", "c").dedup_key != _comment(None, "a", "b\x00c").dedup_key
+
+
+def test_dedup_key_nao_entra_no_contrato_serializado() -> None:
+    assert "dedup_key" not in asdict(_post("1", "u"))
+    assert "dedup_key" not in asdict(_comment("c_1", "a_1", "oi"))
+
+
+def test_unique_comments_usa_a_identidade_do_comentario() -> None:
+    comments = [_comment("c_1", "a", "x"), _comment("c_1", "b", "y"), _comment(None, "a", "x")]
+
+    assert [c.texto for c in unique_comments().filter(comments)] == ["x", "x"]
+
+
+def test_engagement_count_le_a_contagem_pedida() -> None:
+    engagement = Engagement(curtidas=1, comentarios=2, compartilhamentos=3)
+
+    assert [engagement.count(metric) for metric in PostSortBy] == [1, 2, 3, None]
 
 
 def test_unique_items_mantem_a_primeira_ocorrencia_entre_lotes() -> None:
@@ -68,10 +98,7 @@ def test_unique_items_mantem_a_primeira_ocorrencia_entre_lotes() -> None:
 
 
 def test_unique_posts_usa_o_id_e_cai_para_a_url() -> None:
-    def post(post_id: str | None, url: str) -> Post:
-        return Post(id=post_id, url=url, engajamento=Engagement(), coletado_em="x")
-
-    posts = [post("1", "u1"), post("1", "u2"), post(None, "u3"), post(None, "u3")]
+    posts = [_post("1", "u1"), _post("1", "u2"), _post(None, "u3"), _post(None, "u3")]
 
     assert [(p.id, p.url) for p in unique_posts().filter(posts)] == [("1", "u1"), (None, "u3")]
 

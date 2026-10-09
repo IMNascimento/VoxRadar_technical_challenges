@@ -1,4 +1,4 @@
-"""Identificadores, chaves de deduplicação e a regra de primeira ocorrência."""
+"""Deduplicação pela regra de primeira ocorrência, com a identidade de cada entidade."""
 
 from __future__ import annotations
 
@@ -9,22 +9,6 @@ from ..entities.comment import Comment
 from ..entities.post import Post
 
 ItemT = TypeVar("ItemT")
-
-
-def post_dedup_key(post_id: str | None, url: str) -> str:
-    """Chave de deduplicação de postagem: ``id`` quando houver, senão ``url``."""
-    return post_id or url
-
-
-def comment_dedup_key(comment_id: str | None, author_id: str | None, text: str) -> str:
-    """Chave de deduplicação de comentário: ``id`` ou ``autor``/``texto`` sem ambiguidade.
-
-    Sem ``id``, o autor é prefixado pelo próprio comprimento antes do texto, o
-    que torna a chave injetiva: pares ambíguos (ex.: autor ``a:b`` com texto
-    ``c`` vs. autor ``a`` com texto ``b:c``) não colidem.
-    """
-    author = "" if author_id is None else author_id
-    return comment_id or f"{len(author)}:{author}{text}"
 
 
 class UniqueItems(Generic[ItemT]):
@@ -57,12 +41,10 @@ class UniqueItems(Generic[ItemT]):
 
 
 def unique_posts() -> UniqueItems[Post]:
-    """Deduplicação de postagens por :func:`post_dedup_key`."""
-    return UniqueItems(lambda post: post_dedup_key(post.id, post.url))
+    """Deduplicação de postagens por :attr:`Post.dedup_key`."""
+    return UniqueItems(lambda post: post.dedup_key)
 
 
 def unique_comments() -> UniqueItems[Comment]:
-    """Deduplicação de comentários por :func:`comment_dedup_key`."""
-    return UniqueItems(
-        lambda comment: comment_dedup_key(comment.id, comment.autor.id, comment.texto)
-    )
+    """Deduplicação de comentários por :attr:`Comment.dedup_key`."""
+    return UniqueItems(lambda comment: comment.dedup_key)

@@ -16,7 +16,11 @@ class CommentAuthor:
 @dataclass(frozen=True, kw_only=True)
 class Comment:
     """Um comentário de uma postagem. Campos obrigatórios: ``postagem_url``,
-    ``texto``, ``coletado_em``."""
+    ``texto``, ``coletado_em``.
+
+    Propriedades não entram em ``dataclasses.asdict``: ``dedup_key`` não altera o
+    contrato de saída.
+    """
 
     id: str | None = None
     postagem_url: str
@@ -25,6 +29,17 @@ class Comment:
     curtidas: int | None = None
     data: str | None = None
     coletado_em: str
+
+    @property
+    def dedup_key(self) -> str:
+        """Identidade na deduplicação: ``id`` ou ``autor``/``texto`` sem ambiguidade.
+
+        Sem ``id``, o autor é prefixado pelo próprio comprimento antes do texto, o
+        que torna a chave injetiva: pares ambíguos (ex.: autor ``a:b`` com texto
+        ``c`` vs. autor ``a`` com texto ``b:c``) não colidem.
+        """
+        author = self.autor.id or ""
+        return self.id or f"{len(author)}:{author}{self.texto}"
 
 
 @dataclass(frozen=True, kw_only=True)
