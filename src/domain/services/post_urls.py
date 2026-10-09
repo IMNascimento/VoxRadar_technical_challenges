@@ -9,7 +9,8 @@ from __future__ import annotations
 import re
 from urllib.parse import unquote, urlsplit
 
-from ..exceptions.domain_exceptions import InvalidInputError
+from ..entities.post import Post
+from ..exceptions.domain_exceptions import InvalidInputError, InvalidValueError
 from ..value_objects.identifiers import PhotoId
 from ..value_objects.post_reference import PostReference
 
@@ -57,6 +58,17 @@ def parse_post_reference(url: str) -> PostReference:
         InvalidInputError: se a URL não casar com o padrão esperado.
     """
     return PostReference(extract_photo_id(url), url, owner=_extract_owner(url))
+
+
+def reference_post(post: Post) -> PostReference:
+    """Referencia uma postagem já coletada pelo id dela, sem reinterpretar a URL.
+
+    Raises:
+        InvalidValueError: se a postagem vier da API sem id numérico.
+    """
+    if post.id is None:
+        raise InvalidValueError(f"postagem sem id: {post.url!r}")
+    return PostReference(PhotoId(post.id), post.url, owner=_extract_owner(post.url))
 
 
 def _extract_owner(url: str) -> str | None:

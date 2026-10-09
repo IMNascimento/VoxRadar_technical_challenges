@@ -17,10 +17,11 @@ from src.domain.services.post_urls import (
     parse_post_reference,
     post_url,
     profile_url,
+    reference_post,
 )
 from src.domain.services.replies import declares_replies, replies_diverge
 from src.domain.value_objects.cursor import Cursor
-from src.domain.value_objects.identifiers import Handle
+from src.domain.value_objects.identifiers import Handle, PhotoId
 from src.domain.value_objects.iso_timestamp import IsoTimestamp
 
 # --- pagination -------------------------------------------------------------
@@ -160,6 +161,20 @@ def test_parse_post_reference_extrai_id_e_dono() -> None:
 
     assert post.photo_id.value == "123"
     assert post.owner == "perfil x"
+
+
+def test_reference_post_usa_o_id_da_postagem_sem_reinterpretar_a_url() -> None:
+    post = reference_post(_post("123", "https://www.kwai.com/@perfil/video/123"))
+
+    assert post.photo_id == PhotoId("123")
+    assert post.owner == "perfil"
+
+
+def test_reference_post_sem_id_e_valor_invalido_da_api() -> None:
+    with pytest.raises(InvalidValueError, match="postagem sem id"):
+        reference_post(_post(None, "https://u/sem-id"))
+    with pytest.raises(InvalidValueError, match="id de postagem inválido"):
+        reference_post(_post("abc", "https://u/abc"))
 
 
 def test_parse_post_reference_sem_segmento_de_dono() -> None:

@@ -42,6 +42,7 @@ from src.domain.entities.comment import Comment, CommentAuthor, ExpandedComment
 from src.domain.entities.post import Engagement, Post
 from src.domain.exceptions.domain_exceptions import (
     InvalidInputError,
+    InvalidValueError,
     KwaiCollectorError,
     RepeatedCursorError,
 )
@@ -827,19 +828,18 @@ def test_resultado_de_comentarios_exige_post_sem_falha() -> None:
     assert failure.post is None
 
 
-def test_bundle_isola_postagem_sem_id_na_url_como_falha_de_comentarios() -> None:
-    """Uma postagem sem id extraível falha só na sua unidade; as demais seguem."""
+def test_bundle_isola_postagem_sem_id_como_falha_de_comentarios() -> None:
+    """Uma postagem da API sem id falha só na sua unidade; as demais seguem."""
     profile = FakeProfileApi(
         [
             ProfilePage(
-                [_post("1", "https://u/sem-id", STAMP), _post("2", POST_URL, STAMP)],
+                [_post(None, "https://u/sem-id", STAMP), _post("2", POST_URL, STAMP)],
                 Cursor(""),
             )
         ]
     )
     comments = FakeCommentApi([CommentPage([_root(_comment("c1", STAMP))], Cursor(""))])
     command = ProfileCollectionCommand.create("perfil", with_comments=True)
-
     results = list(CollectProfileBundle(profile, comments, _Clock()).execute(command))
 
     assert [(r.kind, r.post is not None, r.error is not None) for r in results] == [
@@ -847,5 +847,5 @@ def test_bundle_isola_postagem_sem_id_na_url_como_falha_de_comentarios() -> None
         ("comments", False, True),
         ("comments", True, False),
     ]
-    assert isinstance(results[1].error, InvalidInputError)
+    assert isinstance(results[1].error, InvalidValueError)
     assert _ids(results[2].items) == ["c1"]

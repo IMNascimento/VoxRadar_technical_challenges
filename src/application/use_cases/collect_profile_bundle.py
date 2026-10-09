@@ -7,6 +7,7 @@ from collections.abc import Iterator
 from ...domain.entities.comment import Comment
 from ...domain.entities.post import Post
 from ...domain.exceptions.domain_exceptions import KwaiCollectorError
+from ...domain.services.post_urls import reference_post
 from ..dtos.collection_result import CollectionResult
 from ..dtos.commands import CommentCollectionCommand, ProfileCollectionCommand
 from ..ports.clock_port import IClockPort
@@ -46,8 +47,8 @@ class CollectProfileBundle:
             return
         for post in result.items:
             try:
-                comments = CommentCollectionCommand.create(
-                    post.url,
+                comments = CommentCollectionCommand(
+                    reference_post(post),
                     limit=command.comments_limit,
                     with_comments=command.with_comments,
                     with_replies=command.with_replies,

@@ -36,13 +36,18 @@ class Handle:
 
 @dataclass(frozen=True)
 class PhotoId:
-    """Id numérico de uma postagem do Kwai."""
+    """Id numérico de uma postagem do Kwai.
+
+    A URL informada pelo usuário é rejeitada antes, por
+    :func:`~src.domain.services.post_urls.extract_photo_id`; aqui a invariante
+    protege ids vindos da API.
+    """
 
     value: str
 
     def __post_init__(self) -> None:
         if not self.value.isdigit():
-            raise InvalidInputError(f"id de postagem inválido: {self.value!r}")
+            raise InvalidValueError(f"id de postagem inválido: {self.value!r}")
 
 
 @dataclass(frozen=True)
