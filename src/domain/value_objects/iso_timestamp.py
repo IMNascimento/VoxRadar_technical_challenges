@@ -21,8 +21,18 @@ class IsoTimestamp:
     def __post_init__(self) -> None:
         if _ISO_UTC_PATTERN.fullmatch(self.value) is None:
             raise InvalidValueError(f"timestamp ISO-8601 UTC inválido: {self.value!r}")
+        try:
+            datetime.strptime(self.value, _ISO_UTC_FORMAT)
+        except ValueError as exc:
+            raise InvalidValueError(f"timestamp ISO-8601 UTC inválido: {self.value!r}") from exc
 
     @classmethod
     def from_datetime(cls, moment: datetime) -> IsoTimestamp:
-        """Converte um instante com fuso para UTC, com precisão de segundos."""
+        """Converte um instante com fuso para UTC, com precisão de segundos.
+
+        Raises:
+            InvalidValueError: se o instante não tiver fuso definido.
+        """
+        if moment.utcoffset() is None:
+            raise InvalidValueError(f"instante sem fuso definido: {moment!r}")
         return cls(moment.astimezone(UTC).strftime(_ISO_UTC_FORMAT))

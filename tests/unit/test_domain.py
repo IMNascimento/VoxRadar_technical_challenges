@@ -7,7 +7,7 @@ from datetime import UTC, datetime, timedelta, timezone
 import pytest
 
 from src.domain.entities.post import Engagement, Post
-from src.domain.exceptions.domain_exceptions import InvalidInputError
+from src.domain.exceptions.domain_exceptions import InvalidInputError, InvalidValueError
 from src.domain.services.identity import (
     UniqueItems,
     comment_dedup_key,
@@ -158,3 +158,31 @@ def test_iso_timestamp_from_datetime_converte_para_utc_em_segundos() -> None:
 
     assert IsoTimestamp.from_datetime(moment).value == "2026-10-09T15:30:15Z"
     assert IsoTimestamp.from_datetime(datetime.now(tz=UTC)).value.endswith("Z")
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "2026-99-99T25:61:61Z",
+        "2026-02-29T00:00:00Z",
+        "2026-04-31T00:00:00Z",
+        "2026-10-09T24:00:00Z",
+        "2026-10-09T00:60:00Z",
+        "2026-10-09T00:00:60Z",
+        "2026-10-09",
+    ],
+)
+def test_iso_timestamp_rejeita_data_ou_horario_invalido(value: str) -> None:
+    with pytest.raises(InvalidValueError, match="timestamp ISO-8601 UTC inválido"):
+        IsoTimestamp(value)
+
+
+def test_iso_timestamp_aceita_dia_bissexto_valido() -> None:
+    value = "2024-02-29T23:59:59Z"
+
+    assert IsoTimestamp(value).value == value
+
+
+def test_iso_timestamp_from_datetime_rejeita_instante_sem_fuso() -> None:
+    with pytest.raises(InvalidValueError, match="fuso"):
+        IsoTimestamp.from_datetime(datetime(2026, 10, 9, 12, 30, 15))
