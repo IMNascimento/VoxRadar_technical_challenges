@@ -18,6 +18,8 @@
 - **Regra:** na CLI, o limite é inteiro ≥ 1 e padrão 20. Cada palavra processada
   pede `count=min(limit, 50)`; o resultado final contém no máximo `limit`
   postagens únicas, e palavras restantes não são consultadas após atingir o teto.
+  `SearchCommand` rejeita a lista vazia e qualquer palavra-chave em branco
+  antes de consultar a API, inclusive em chamadas Python.
 - **Motivação:** separar tamanho do lote externo do teto agregado solicitado.
 - **Implementada em:** `src/application/use_cases/search_posts.py`, `src/entrypoints/cli/app.py`.
 - **Exceções:** não existe paginação por cursor na busca; `limit > 50` não gera
@@ -44,8 +46,10 @@
   ocorrência é mantida. A expansão compartilha seu conjunto de respostas vistas.
 - **Motivação:** páginas podem se sobrepor; a chave sem id evita colisão causada
   por delimitadores presentes no autor/texto.
-- **Implementada em:** `src/domain/services/identity.py` (chaves e `UniqueItems`);
-  os casos de uso só escolhem quando compartilhar a instância.
+- **Implementada em:** `dedup_key` de `Post` e `Comment` (`src/domain/entities/`)
+  e `UniqueItems` (`src/domain/services/identity.py`); os casos de uso só
+  escolhem quando compartilhar a instância. Na expansão, todas as raízes são
+  registradas antes das respostas: resposta com a identidade de uma raiz é descartada.
 - **Exceções:** conteúdo idêntico e sem id pode representar comentários distintos
   que essa política funde. Não há dedupe persistido entre execuções.
 - **Verificação:** `tests/unit/test_usecases.py`, `tests/unit/test_domain.py`.
@@ -57,7 +61,8 @@
   traduz os sentinelas de fim do Kwai (`no_more`, `nomore`, `-1`, `0`) para
   continuação vazia. Continuação já vista gera `RepeatedCursorError`.
 - **Motivação:** obedecer à continuação recebida e evitar loops sem fabricar índices.
-- **Implementada em:** `src/domain/services/pagination.py`, `src/domain/value_objects/cursor.py`,
+- **Implementada em:** `src/domain/services/pagination.py` (decisão pura),
+  `src/application/pagination.py` (coordenação), `src/domain/value_objects/cursor.py`,
   `src/infrastructure/kwai/http_utils.py` (`read_cursor`).
 - **Exceções:** a primeira busca acontece apesar do cursor inicial vazio. O
   consumidor pode parar ao atingir o limite antes de observar uma repetição.
@@ -67,7 +72,7 @@
 
 ## RN-006 — Expansão de respostas é opt-in
 
-- **Regra:** sem `with_replies`, retornar raízes `Comment`. Com a opção,
+- **Regra:** com `CommentVersions.ROOTS`, retornar raízes `Comment`. Com `REPLIES` ou `ALL`,
   terminar primeiro a coleta de raízes e depois expandi-las. Raiz sem id ou
   com total declarado `None`/zero não consulta sublista. Respostas não consomem
   o limite de raízes, e a sublista pede 100 itens por página.

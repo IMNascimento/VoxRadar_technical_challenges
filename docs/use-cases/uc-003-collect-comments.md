@@ -7,7 +7,7 @@
 | **Ator** | Usuário da CLI ou programa Python chamador. |
 | **Objetivo** | Obter raízes de uma postagem e, opcionalmente, respostas com vínculo explícito. |
 | **Pré-condições** | Configuração válida, acesso HTTPS aos gateways e string com `/video/<id>` ou `/photo/<id>`. |
-| **Entrada** | `CommentCollectionCommand.create(post_url, *, limit=None, with_comments=True, with_replies=False)`; CLI `comments --url`, `--with-comments-replies`. |
+| **Entrada** | `CommentCollectionCommand.create(post_url, *, limit=None, versions=CommentVersions.ROOTS)`; CLI `comments --url`, `--with-comments-replies`. |
 | **Implementação** | `src/application/use_cases/collect_comment_versions.py`, injetado com `ICommentApiPort`. |
 | **Saída** | `CollectionResult` por versão: `Comment`; com expansão concluída, lista plana de `ExpandedComment`. |
 

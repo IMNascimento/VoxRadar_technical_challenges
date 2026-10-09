@@ -9,7 +9,7 @@
 flowchart TD
     URL[URL com id] --> Roots[Paginar raízes]
     Roots --> RawLimit[Contar raízes cruas e deduplicar]
-    RawLimit --> Option{with_replies?}
+    RawLimit --> Option{versions.has_replies?}
     Option -->|Não| Plain[Lista de Comment]
     Option -->|Sim| Root[Acrescentar próxima raiz expandida]
     Root --> Eligible{Tem id e total declarado truthy?}

@@ -5,11 +5,15 @@
 ## RN-011 — Retry não corrige erro de negócio
 
 - **Regra:** erro de negócio não nulo e diferente de `1` gera `KwaiApiError`,
-  sem retry ou troca de gateway. Falhas de transporte seguem a política web ou
-  a escada móvel, com `max_retries` tentativas/rodadas extras e backoff de 0,5 a 8 s.
+  sem retry ou troca de gateway. Falhas transitórias (transporte, status 429/5xx
+  e, na escada móvel, corpo não-JSON) seguem a política web ou a escada móvel,
+  com `max_retries` tentativas/rodadas extras e backoff de 0,5 a 8 s. Status
+  permanente (ex.: 403) não é repetido: na escada móvel só passa ao próximo
+  gateway, e a escada inteira só é repetida se alguma falha for transitória.
 - **Motivação:** distinguir uma resposta recebida de uma tentativa de transporte falha.
 - **Implementada em:** `src/infrastructure/kwai/business_result.py`,
-  `src/infrastructure/kwai/web/client.py`, `mobile/client.py`, `http_utils.py`.
+  `src/infrastructure/kwai/web/client.py`, `mobile/client.py`, `http_utils.py`
+  (`RETRYABLE_STATUS`, `is_transient_failure`).
 - **Exceções:** `result` ausente/nulo é tolerado; a comparação não é estrita de
   tipo. JSON não-objeto móvel entra no fallback; erro interno de lista/cursor, não.
 - **Verificação:** `tests/integration/test_mobile_api.py`, `tests/integration/test_collector.py`,
@@ -21,6 +25,8 @@
   devem ser listas de objetos. Lista ou item inválido gera
   `UnexpectedResponseError` antes de entregar a página; não pular silenciosamente
   um item de comentários para fazer o lote parecer completo.
+  Na resolução de perfil, `user_id` inválido também gera `UnexpectedResponseError`
+  (da família `ExternalServiceError`), preservando `InvalidValueError` como causa.
 - **Motivação:** não ocultar perda dentro da página. Páginas anteriores são
   preservadas pela política de interrupção, quando há itens.
 - **Implementada em:** `src/infrastructure/kwai/http_utils.py`, `mobile/client.py`.
@@ -47,7 +53,8 @@
   respostas entregues e continua com outra raiz. Repetição em perfil/raízes
   interrompe essa coleta, seguindo a regra de parcial.
 - **Motivação:** manter a política existente de isolamento do loop de uma raiz.
-- **Implementada em:** `src/domain/services/pagination.py`, `collect_comment_versions.py`.
+- **Implementada em:** `src/domain/services/pagination.py` (detecção),
+  `src/application/pagination.py` (coordenação), `collect_comment_versions.py` (recuperação).
 - **Exceções:** transporte/estrutura inválida de sublista não usa essa
   recuperação local; interrompe com parcial. A página é entregue antes da
   checagem de continuação, podendo contribuir itens antes de o loop ser acusado.

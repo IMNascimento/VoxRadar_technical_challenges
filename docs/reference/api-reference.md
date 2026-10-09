@@ -49,9 +49,9 @@ coleta documentada é síncrona e sequencial.
 |---|---|---|
 | `Settings` | `src.config.settings` | Campos `request_delay`, `http_timeout`, `max_retries`, `user_agent`. |
 | `build_services(settings)` | `src.infrastructure.container.container` | Retorna `Services`, criando os clientes e adapters web e móvel e o relógio. |
-| `Services.search_posts` | `src.infrastructure.container.container` | Instância de `SearchPosts`. |
-| `Services.comment_versions` | `src.infrastructure.container.container` | Instância de `CollectCommentVersions`. |
-| `Services.profile_bundle` | `src.infrastructure.container.container` | Instância de `CollectProfileBundle`. |
+| `Services.search_posts` | `src.infrastructure.container.container` | Porta `ISearchPostsPort`, implementada por `SearchPosts`. |
+| `Services.comment_versions` | `src.infrastructure.container.container` | Porta `ICollectCommentVersionsPort`, implementada por `CollectCommentVersions`. |
+| `Services.profile_bundle` | `src.infrastructure.container.container` | Porta `ICollectProfileBundlePort`, implementada por `CollectProfileBundle`. |
 | `Services.close()` | `src.infrastructure.container.container` | Encerra os recursos HTTP. Preferir o context manager. |
 
 Configurações explícitas são úteis para testes, por exemplo
@@ -64,11 +64,19 @@ recomendação de coleta em volume; veja [Primeiros passos](../guides/getting-st
 |---|---|---|---|
 | `SearchPosts` | `SearchPosts(api: ISearchApiPort, clock: IClockPort)` | `execute(command: SearchCommand)` | `CollectionResult[Post]`. |
 | `CollectCommentVersions` | `CollectCommentVersions(api: ICommentApiPort, clock: IClockPort)` | `execute(command: CommentCollectionCommand)` | `Iterator[CollectionResult[Comment]]`. |
-| `CollectProfileBundle` | `CollectProfileBundle(profile_api: IProfileApiPort, comment_api: ICommentApiPort, clock: IClockPort)` | `execute(command: ProfileCollectionCommand)` | `Iterator[CollectionResult[Post \| Comment]]`. |
+| `CollectProfileBundle` | `CollectProfileBundle(posts: ICollectUserPostsPort, comments: ICollectCommentVersionsPort)` | `execute(command: ProfileCollectionCommand)` | `Iterator[CollectionResult[Post \| Comment]]`. |
 
-`CollectUserPosts(api, clock).execute(command: ProfileCollectionCommand)` devolve
-`list[Post]` e é usado internamente por `CollectProfileBundle`; falhas sobem como
-exceção (veja abaixo). `IClockPort` (método `now() -> IsoTimestamp`) fica em
+As portas de entrada vivem em `src.application.ports.use_case_ports`:
+`ISearchPostsPort`, `ICollectUserPostsPort`, `ICollectCommentVersionsPort` e
+`ICollectProfileBundlePort`. Cada uma declara somente `execute`, com o mesmo
+comando e retorno do caso de uso correspondente. O container escolhe as
+implementações; a CLI e o bundle consomem os contratos.
+
+`CollectUserPosts(api: IProfileApiPort, clock).execute(command: ProfileCollectionCommand)`
+devolve `list[Post]` e é injetado em `CollectProfileBundle`; falhas sobem como
+exceção (veja abaixo). O bundle referencia cada postagem pelo `id` coletado
+(`reference_post`); postagem sem id numérico vira resultado `comments` com
+`InvalidValueError`, e as demais seguem. `IClockPort` (método `now() -> IsoTimestamp`) fica em
 `src.application.ports.clock_port`; o container injeta `SystemClock`, e testes
 injetam um relógio fixo. Cada execução lê o relógio uma única vez.
 
@@ -80,9 +88,15 @@ uso recebe os valores já validados e não repete a validação.
 
 | Comando | Fábrica | Campos validados |
 |---|---|---|
-| `SearchCommand` | `create(keywords, *, limit=20, sort_by=None)` | `keywords` não vazio; `limit` positivo; `sort_by` → `PostSortBy`. |
-| `CommentCollectionCommand` | `create(post_url, *, limit=None, with_comments=True, with_replies=False)` | URL → `PostReference` (id de `/video/` ou `/photo/`); `limit` positivo. |
-| `ProfileCollectionCommand` | `create(user, *, limit=None, comments_limit=None, with_comments=False, with_replies=False, sort_by=None)` | Conta → `Handle` normalizado; limites positivos; `sort_by` → `PostSortBy`. |
+| `SearchCommand` | `create(keywords, *, limit=20, sort_by=None)` | `keywords` não vazio e nenhuma palavra-chave em branco; `limit` positivo; `sort_by` → `PostSortBy`. |
+| `CommentCollectionCommand` | `create(post_url, *, limit=None, versions=CommentVersions.ROOTS)` | URL → `PostReference` (id de `/video/` ou `/photo/`); `limit` positivo. |
+| `ProfileCollectionCommand` | `create(user, *, limit=None, comments_limit=None, comment_versions=None, sort_by=None)` | Conta → `Handle` normalizado; limites positivos; `sort_by` → `PostSortBy`. `comment_versions=None` dispensa comentários. |
+
+`CommentVersions` (mesmo módulo) escolhe as versões de comentários: `ROOTS`,
+`REPLIES` ou `ALL`; `has_roots`/`has_replies` dizem o que é entregue. Pedir
+comentários sem nenhuma versão não é representável.
+`CommentVersions.from_flags(roots=..., replies=...)` converte as opções da CLI e
+devolve `None` quando nenhuma foi pedida.
 
 Entrada inválida lança `InvalidInputError` na criação do comando. O extrator de
 id da URL não valida host completo: não use seu sucesso como certificação de
@@ -118,8 +132,9 @@ garantia de sucesso. A CLI grava as unidades antes de fechar os serviços.
 |---|---|---|
 | `KwaiCollectorError` | `src.domain.exceptions.domain_exceptions` | Base dos erros esperados da coleta. |
 | `InvalidInputError` | Mesmo módulo | Handle, id/URL, limite ou entrada reconhecida como inválida. |
-| `InvalidValueError` | Mesmo módulo | Id de comentário/usuário ou timestamp fora da invariante do value object. |
+| `InvalidValueError` | Mesmo módulo | Id de postagem/comentário/usuário ou timestamp vindo da API fora da invariante do value object. |
 | `RepeatedCursorError` | Mesmo módulo | Continuação já vista (regra de paginação do domínio). |
+| `ExternalServiceError` | `src.application.exceptions` | Base das falhas do serviço externo atrás das portas; separa essas falhas dos erros de entrada/valor. |
 | `KwaiTransportError` | `src.infrastructure.kwai.exceptions` | Transporte/status sem recuperação disponível. |
 | `UnexpectedResponseError` | Mesmo módulo | JSON ou estrutura da resposta não aceitos. |
 | `KwaiApiError` | Mesmo módulo | Erro de negócio do protocolo (campo `result`); atributo `result` guarda o código recebido. |
@@ -130,9 +145,12 @@ aparecem em `CollectionResult.error`, com o parcial em `items`. Quando a falha
 interrompe uma coleta que já tinha itens, `error` é um `CollectionInterruptedError`
 cuja causa original fica em `__cause__`. `CollectUserPosts`, usado diretamente,
 lança essas exceções; capture `CollectionInterruptedError` **antes** de
-`KwaiCollectorError`, pois a primeira herda da segunda. Seu `partial` é uma tupla
-de `object`; `partial_items(exc, Post)`, de `src.application.exceptions`, devolve
-os itens tipados (vazio para falhas sem parcial).
+`KwaiCollectorError`, pois a primeira herda da segunda. `KwaiTransportError`,
+`UnexpectedResponseError` e `KwaiApiError` herdam de `ExternalServiceError`, que
+herda de `KwaiCollectorError`: capture a família externa quando quiser reagir
+só a ela. `CollectionInterruptedError` é genérica no tipo do `partial`, mas o
+tipo se perde ao capturar; `partial_items(exc, Post)`, de
+`src.application.exceptions`, devolve os itens tipados (vazio para falhas sem parcial).
 
 Este exemplo também faz rede. Mostra explicitamente como diferenciar parcial
 de sucesso; não transforma a falha em resultado completo:
@@ -209,11 +227,11 @@ dataclasses `frozen=True`; as listas internas não viram coleções profundament
 
 | Tipo | Regra relevante |
 |---|---|
-| `Handle` | Não vazio, sem `@`, espaço ou `/`, sem espaço de borda. Normalizar via `normalize_handle` quando a entrada for do usuário. |
+| `Handle` | Não vazio, sem `@`, `/` ou whitespace (inclusive tabs, quebras de linha e espaços Unicode). Normalizar via `Handle.parse` quando a entrada for do usuário. |
 | `PhotoId` / `UserId` | String para a qual `isdigit()` é verdadeiro; não são inteiros de máquina. |
 | `CommentId` | Não vazio, sem espaço de borda; não exige formato numérico. |
 | `Cursor` | Encapsula string; vazio marca o fim. Os sentinelas do Kwai são traduzidos pelo adapter. Não calcula a próxima página. |
-| `IsoTimestamp` | String que casa com o padrão `YYYY-MM-DDTHH:MM:SSZ`; valida a forma por regex, não a existência da data no calendário. `from_datetime` converte um instante com fuso para esse formato. |
+| `IsoTimestamp` | String no padrão `YYYY-MM-DDTHH:MM:SSZ`, com data e horário válidos. `from_datetime` exige fuso definido e converte o instante para UTC nesse formato. Valores inválidos geram `InvalidValueError`. |
 | `PostReference` | `photo_id: PhotoId`, `url` e `owner` (handle do segmento `@perfil`, quando houver); construída por `parse_post_reference` (`domain/services/post_urls.py`), que extrai o id de `/video/` ou `/photo/`. |
 
 Tipos vivem em [`domain/value_objects`](../../src/domain/value_objects).
@@ -225,10 +243,12 @@ As validações de `isdigit()` não equivalem a uma restrição ASCII de ids.
 |---|---|
 | `compute_sig(params: Mapping[str, str]) -> str` | Fórmula em [Assinatura](../internals/signature.md). |
 | `parse_feed`, `parse_comment`, `parse_sub_comment` | Mapeamento em [Schemas](./schemas.md). |
-| `iter_pages(fetch, *, is_empty, source)` | Serviço de domínio (`src.domain.services.pagination`): gerador preguiçoso de páginas; não persiste cursor. |
-| `unique_posts()`, `unique_comments()` | Serviço de domínio (`src.domain.services.identity`): `UniqueItems` que mantém a primeira ocorrência por chave; uma instância compartilhada deduplica entre lotes. |
+| `iter_pages(fetch, *, is_empty, source)` | Coordenação na aplicação (`src.application.pagination`): gerador preguiçoso de páginas; não persiste cursor. |
+| `get_continuation_cursor(cursor, *, is_empty, seen_cursors, source)` | Serviço puro de domínio (`src.domain.services.pagination`): retorna a continuação, `None` no fim ou levanta `RepeatedCursorError`; não busca páginas nem altera os cursores recebidos. |
+| `unique_posts()`, `unique_comments()` | Serviço de domínio (`src.domain.services.identity`): `UniqueItems` que mantém a primeira ocorrência por `dedup_key` da entidade; uma instância compartilhada deduplica entre lotes. |
+| `Post.dedup_key`, `Comment.dedup_key`, `Engagement.count(metric)` | Comportamento das entidades: identidade na deduplicação e contagem usada na ordenação. Propriedades e métodos não entram no JSON (`asdict`). |
 | `declares_replies`, `replies_diverge` | Serviço de domínio (`src.domain.services.replies`): elegibilidade da raiz para expansão e divergência entre total declarado e entregue. |
-| `post_url`, `profile_url`, `parse_post_reference` | Serviço de domínio (`src.domain.services.post_urls`): única fonte do formato das URLs públicas do Kwai. |
+| `post_url`, `profile_url`, `parse_post_reference`, `reference_post` | Serviço de domínio (`src.domain.services.post_urls`): única fonte do formato das URLs públicas do Kwai. |
 
 Para integração mantenha dependência nos casos de uso; helpers e adapters estão
 expostos pelo código, mas acoplam o chamador a detalhes de manutenção do protocolo.

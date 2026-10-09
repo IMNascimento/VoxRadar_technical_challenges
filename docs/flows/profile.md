@@ -19,7 +19,7 @@ flowchart LR
 
 ## Etapas
 
-1. **Normalizar:** `normalize_handle` prepara o `Handle`; entrada inválida aborta.
+1. **Normalizar:** `Handle.parse` prepara o `Handle`; entrada inválida aborta.
 2. **Resolver:** `MobileApiAdapter.resolve_user` usa `getInfo` com contexto
    completo, `userIds=@handle`, assinatura local e a escada de gateways.
 3. **Paginar:** `CollectUserPosts` usa `iter_pages`; o adapter pede 30 por página;
