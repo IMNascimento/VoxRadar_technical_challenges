@@ -5,13 +5,14 @@ from __future__ import annotations
 from collections.abc import Iterator
 from itertools import chain
 
-from ..domain.exceptions import KwaiCollectorError
+from ..domain.exceptions import InvalidInputError, KwaiCollectorError
 from ..domain.identity import comment_dedup_key, extract_photo_id
 from ..domain.value_objects.identifiers import CommentId, PhotoId
 from ..domain.value_objects.iso_timestamp import IsoTimestamp
 from ..shared.logging_config import COLLECTOR_LOGGER_NAME, get_logger
 from ..shared.utils.timestamps import now_iso
-from .exceptions import RepeatedCursorError, reraise_with_partial
+from .collection_result import CollectionResult
+from .exceptions import CollectionInterruptedError, RepeatedCursorError, reraise_with_partial
 from .models import Comment, ExpandedComment
 from .pagination import iter_pages
 from .ports import CommentApiPort, RootComment
@@ -43,8 +44,8 @@ def _warn_reply_count(root: RootComment, collected: int) -> None:
         )
 
 
-class CollectComments:
-    """Coleta os comentários de uma postagem a partir do link."""
+class _CommentReader:
+    """Mecânica compartilhada de raízes e expansão, sem escolher versões de saída."""
 
     def __init__(self, api: CommentApiPort) -> None:
         """Inicializa o caso de uso.
@@ -53,51 +54,6 @@ class CollectComments:
             api: porta de leitura da API móvel de comentários.
         """
         self._api = api
-
-    def execute(
-        self, post_url: str, *, limit: int | None = None, with_replies: bool = False
-    ) -> list[Comment]:
-        """Percorre as páginas do ``pcursor`` e deduplica os comentários.
-
-        O ``limit`` conta **itens crus de raiz** devolvidos pela API (antes do
-        dedupe), como na coleta original; a decisão de fim de paginação fica no
-        domínio (via :meth:`Cursor.is_end`), não no adapter.
-
-        Com ``with_replies``, cada raiz é seguida das suas respostas numa lista
-        plana: a resposta aponta para a raiz via ``parent_id`` e a raiz traz
-        ``respostas_total`` com o total que a API **declara** (que pode ser maior
-        que o número de respostas efetivamente coletadas). Sem a opção, a saída é
-        idêntica à coleta de raízes. Uma raiz cuja sublista entra em laço de
-        cursor é registrada no log e as demais seguem.
-
-        Args:
-            post_url: link da postagem (``.../@perfil/video/<id>``).
-            limit: teto opcional de itens crus de raiz a buscar.
-            with_replies: se ``True``, coleta também as respostas de cada raiz.
-
-        Returns:
-            Os comentários únicos, na ordem de coleta (raiz seguida das respostas
-            quando ``with_replies``).
-
-        Raises:
-            InvalidInputError: se a URL não tiver um id de postagem válido.
-            CollectionInterruptedError: se a coleta falhar depois de já ter
-                comentários; o que foi coletado vai em ``partial``.
-            KwaiCollectorError: se a falha vier antes do primeiro comentário.
-        """
-        photo_id = extract_photo_id(post_url)
-        logger.info("coletando comentários da postagem %s", photo_id.value)
-        collected_at = IsoTimestamp(now_iso())
-        roots = self._collect_roots(
-            photo_id, post_url=post_url, collected_at=collected_at, limit=limit
-        )
-        comments: list[Comment] = [root.comentario for root in roots]
-        if with_replies:
-            comments = self._expand_replies(
-                photo_id, roots, post_url=post_url, collected_at=collected_at
-            )
-        logger.info("postagem %s: %d comentários coletados", photo_id.value, len(comments))
-        return comments
 
     def _collect_roots(
         self, photo_id: PhotoId, *, post_url: str, collected_at: IsoTimestamp, limit: int | None
@@ -210,3 +166,73 @@ class CollectComments:
                 )
         except RepeatedCursorError as exc:
             logger.warning("respostas da raiz %s truncadas: %s", root_id, exc)
+
+
+class CollectComments:
+    """Coleta uma versão de comentários, preservando a interface Python existente."""
+
+    def __init__(self, api: CommentApiPort) -> None:
+        self._reader = _CommentReader(api)
+
+    def execute(
+        self, post_url: str, *, limit: int | None = None, with_replies: bool = False
+    ) -> list[Comment]:
+        """Coleta raízes cruas até o limite, com expansão plana opcional.
+
+        Falhas após itens lançam CollectionInterruptedError; sem itens,
+        propagam a causa. Respostas não consomem o limite de raízes.
+        """
+        photo_id = extract_photo_id(post_url)
+        collected_at = IsoTimestamp(now_iso())
+        roots = self._reader._collect_roots(
+            photo_id, post_url=post_url, collected_at=collected_at, limit=limit
+        )
+        if with_replies:
+            return self._reader._expand_replies(
+                photo_id, roots, post_url=post_url, collected_at=collected_at
+            )
+        return [root.comentario for root in roots]
+
+
+class CollectCommentVersions:
+    """Entrega versões independentes, sem buscar raízes novamente para expandir."""
+
+    def __init__(self, api: CommentApiPort) -> None:
+        self._reader = _CommentReader(api)
+
+    def execute(
+        self,
+        post_url: str,
+        *,
+        limit: int | None = None,
+        with_comments: bool = True,
+        with_replies: bool = False,
+    ) -> Iterator[CollectionResult]:
+        """Entrega raízes antes da expansão; identifica a falha pela etapa executada."""
+        if limit is not None and limit < 1:
+            raise InvalidInputError("limite de comentários deve ser positivo")
+        photo_id = extract_photo_id(post_url)
+        collected_at = IsoTimestamp(now_iso())
+        try:
+            roots = self._reader._collect_roots(
+                photo_id, post_url=post_url, collected_at=collected_at, limit=limit
+            )
+        except KwaiCollectorError as exc:
+            partial = exc.partial if isinstance(exc, CollectionInterruptedError) else ()
+            yield CollectionResult("comments", partial, "roots", post_url, exc)
+            return
+        if with_comments:
+            yield CollectionResult(
+                "comments", tuple(root.comentario for root in roots), "roots", post_url
+            )
+        if not with_replies:
+            return
+        try:
+            expanded = self._reader._expand_replies(
+                photo_id, roots, post_url=post_url, collected_at=collected_at
+            )
+        except KwaiCollectorError as exc:
+            partial = exc.partial if isinstance(exc, CollectionInterruptedError) else ()
+            yield CollectionResult("comments-replies", partial, "replies", post_url, exc)
+            return
+        yield CollectionResult("comments-replies", tuple(expanded), "replies", post_url)
