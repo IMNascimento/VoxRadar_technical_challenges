@@ -3,6 +3,8 @@
 
 # Saídas de execução
 out/
+exports/
+*.log
 
 # Python
 __pycache__/
