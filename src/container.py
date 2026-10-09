@@ -12,7 +12,8 @@ from dataclasses import dataclass, field
 from types import TracebackType
 from typing import Protocol
 
-from .application.collect_comments import CollectComments
+from .application.collect_comments import CollectComments, CollectCommentVersions
+from .application.collect_profile_bundle import CollectProfileBundle
 from .application.collect_user_posts import CollectUserPosts
 from .application.search_posts import SearchPosts
 from .config import Settings
@@ -39,6 +40,8 @@ class Services:
     search_posts: SearchPosts
     user_posts: CollectUserPosts
     comments: CollectComments
+    comment_versions: CollectCommentVersions
+    profile_bundle: CollectProfileBundle
     _closeables: tuple[Closeable, ...] = field(repr=False)
 
     def close(self) -> None:
@@ -70,9 +73,13 @@ def build_services(settings: Settings) -> Services:
     """
     web_api = KwaiWebAdapter(settings)
     mobile_api = MobileApiAdapter(settings)
+    user_posts = CollectUserPosts(mobile_api)
+    comment_versions = CollectCommentVersions(mobile_api)
     return Services(
         search_posts=SearchPosts(web_api),
-        user_posts=CollectUserPosts(mobile_api),
+        user_posts=user_posts,
         comments=CollectComments(mobile_api),
         _closeables=(web_api, mobile_api),
+        comment_versions=comment_versions,
+        profile_bundle=CollectProfileBundle(user_posts, comment_versions),
     )
