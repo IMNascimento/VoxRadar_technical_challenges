@@ -9,7 +9,6 @@ from itertools import chain
 from ...domain.entities.comment import Comment, ExpandedComment
 from ...domain.exceptions.domain_exceptions import KwaiCollectorError, RepeatedCursorError
 from ...domain.services.identity import UniqueItems, unique_comments
-from ...domain.services.pagination import iter_pages
 from ...domain.services.replies import declares_replies, replies_diverge
 from ...domain.value_objects.identifiers import CommentId
 from ...domain.value_objects.iso_timestamp import IsoTimestamp
@@ -19,6 +18,7 @@ from ..dtos.collection_result import CollectionResult
 from ..dtos.commands import CommentCollectionCommand
 from ..dtos.pages import RootComment
 from ..exceptions import reraise_with_partial
+from ..pagination import iter_pages
 from ..ports.clock_port import IClockPort
 from ..ports.comment_api_port import ICommentApiPort
 from ..ports.use_case_ports import ICollectCommentVersionsPort

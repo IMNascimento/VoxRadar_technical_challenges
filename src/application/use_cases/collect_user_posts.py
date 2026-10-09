@@ -7,13 +7,13 @@ from itertools import chain
 from ...domain.entities.post import Post
 from ...domain.exceptions.domain_exceptions import KwaiCollectorError
 from ...domain.services.identity import unique_posts
-from ...domain.services.pagination import iter_pages
 from ...domain.services.post_ordering import order_posts
 from ...domain.value_objects.identifiers import UserId
 from ...domain.value_objects.iso_timestamp import IsoTimestamp
 from ...shared.logging.logging_config import COLLECTOR_LOGGER_NAME, get_logger
 from ..dtos.commands import ProfileCollectionCommand
 from ..exceptions import reraise_with_partial
+from ..pagination import iter_pages
 from ..ports.clock_port import IClockPort
 from ..ports.profile_api_port import IProfileApiPort
 from ..ports.use_case_ports import ICollectUserPostsPort
@@ -39,7 +39,7 @@ class CollectUserPosts(ICollectUserPostsPort):
 
         O feed exige o id numérico, então o handle é resolvido antes; o
         ``limit`` conta **postagens únicas** e a decisão de fim de paginação
-        fica no domínio, via :func:`iter_pages`.
+        fica no domínio; :func:`iter_pages` coordena as consultas na aplicação.
 
         Args:
             command: conta já normalizada, teto opcional de postagens únicas e

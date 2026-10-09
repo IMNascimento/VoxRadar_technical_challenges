@@ -7,8 +7,9 @@ from dataclasses import dataclass
 
 import pytest
 
+from src.application.pagination import iter_pages
 from src.domain.exceptions.domain_exceptions import RepeatedCursorError
-from src.domain.services.pagination import iter_pages
+from src.domain.services.pagination import get_continuation_cursor
 from src.domain.value_objects.cursor import Cursor
 
 
@@ -73,3 +74,31 @@ def test_e_preguicoso_a_proxima_pagina_so_e_buscada_quando_pedida() -> None:
 
     assert first.items == ["a"]
     assert server.cursors == [""]
+
+
+def test_regra_de_continuacao_nao_altera_os_cursores_recebidos() -> None:
+    seen = {"P1"}
+    cursor = Cursor("P2")
+
+    result = get_continuation_cursor(cursor, is_empty=False, seen_cursors=seen, source="teste")
+
+    assert result is cursor
+    assert seen == {"P1"}
+
+
+@pytest.mark.parametrize(("cursor", "is_empty"), [("", False), ("P1", True)])
+def test_fim_de_paginacao_prevalece_sobre_repeticao(cursor: str, is_empty: bool) -> None:
+    result = get_continuation_cursor(
+        Cursor(cursor), is_empty=is_empty, seen_cursors={cursor}, source="teste"
+    )
+
+    assert result is None
+
+
+def test_regra_rejeita_continuacao_repetida_sem_alterar_os_cursores() -> None:
+    seen = {"P1"}
+
+    with pytest.raises(RepeatedCursorError, match="cursor de teste repetido: 'P1'"):
+        get_continuation_cursor(Cursor("P1"), is_empty=False, seen_cursors=seen, source="teste")
+
+    assert seen == {"P1"}
