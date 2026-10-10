@@ -1,26 +1,11 @@
-# Python
+.env
+out/
+*.log
+
 __pycache__/
 *.py[cod]
-*.egg-info/
-.eggs/
-build/
-dist/
-.venv/
-venv/
-env/
-
-# Ambiente / segredos
-.env
-*.local
-
-# Ferramentas
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-.coverage
-htmlcov/
 
-# IDE / SO
-.idea/
-.vscode/
-.DS_Store
+.venv/
