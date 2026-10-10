@@ -1,51 +1,54 @@
-# Gestão de dependências com Poetry, esperada a partir do Nível 1.
-# Ajuste as dependências conforme a sua abordagem (HTTP puro ou navegador).
-# Uso:
-#   poetry install
-#   poetry run python -m kwai_collector --help
-#   poetry run pytest
-
-[tool.poetry]
+[project]
 name = "kwai-collector"
 version = "0.1.0"
-description = "Coletor de postagens, engajamento e comentarios do Kwai (Desafio VoxRadar)"
-authors = ["Seu Nome <voce@exemplo.com>"]
-readme = "README.md"
-packages = [{ include = "kwai_collector" }]
+description = "CLI em Python para coleta, paginação e normalização de dados públicos do Kwai."
+readme = "docs/USAGE.md"
+requires-python = ">=3.11,<4.0"
 
-[tool.poetry.dependencies]
-python = "^3.11"
-# Escolha a sua abordagem de acesso (descomente o que usar):
-# httpx = "^0.27"
-# requests = "^2.32"
-# playwright = "^1.45"
-# selenium = "^4.22"
-# Parsing / dados:
-# beautifulsoup4 = "^4.12"
-# pydantic = "^2.8"
-# pydantic-settings = "^2.3"
-# CLI:
-# typer = "^0.12"
+authors = [
+    { name = "Tiuteus007-gif", email = "209494330+teusdev7@users.noreply.github.com" }
+]
 
-[tool.poetry.group.dev.dependencies]
-# Ferramentas de qualidade esperadas a partir do Nível 1:
-# pytest = "^8.2"
-# pytest-cov = "^5.0"
-# mypy = "^1.10"
-# ruff = "^0.5"
+keywords = [
+    "python",
+    "web-scraping",
+    "httpx",
+    "data-collection",
+    "cli",
+]
 
-# Ponto de entrada opcional da CLI:
-# [tool.poetry.scripts]
-# kwai-collector = "kwai_collector.__main__:app"
+dependencies = [
+    "httpx (>=0.28.1,<0.29.0)",
+    "h2 (>=4.4.1,<5.0.0)",
+    "pydantic (>=2.13.4,<3.0.0)",
+    "pydantic-settings (>=2.15.0,<3.0.0)",
+]
+
+[project.scripts]
+kwai-collector = "kwai_collector.cli:main"
+
+[tool.poetry]
+include = [
+    { path = "kwai_collector/security/kwai_lite_103_sig3_material.bin", format = ["sdist", "wheel"] },
+]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest (>=9.1.1,<10.0.0)",
+    "ruff (>=0.16.4,<0.17.0)",
+    "mypy (>=2.3.1,<3.0.0)",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
 
 [tool.ruff]
-line-length = 100
 target-version = "py311"
+line-length = 88
 
 [tool.mypy]
 python_version = "3.11"
-strict = true
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"

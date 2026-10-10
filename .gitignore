@@ -1,26 +1,158 @@
+# ============================================================
 # Python
+# ============================================================
+
 __pycache__/
+**/__pycache__/
 *.py[cod]
-*.egg-info/
-.eggs/
-build/
-dist/
+*$py.class
+*.pyo
+*.pyd
+
+
+# ============================================================
+# Ambientes virtuais
+# ============================================================
+
 .venv/
 venv/
 env/
 
-# Ambiente / segredos
-.env
-*.local
 
-# Ferramentas
+# ============================================================
+# Testes, cobertura e análise estática
+# ============================================================
+
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.pyright/
 .coverage
+.coverage.*
 htmlcov/
+coverage.xml
 
-# IDE / SO
-.idea/
+
+# ============================================================
+# Variáveis de ambiente e credenciais locais
+# ============================================================
+
+.env
+**/.env
+.env.*
+!.env.example
+
+
+# ============================================================
+# IDEs e editores
+# ============================================================
+
 .vscode/
+.idea/
+
+
+# ============================================================
+# Sistema operacional
+# ============================================================
+
 .DS_Store
+Thumbs.db
+desktop.ini
+
+
+# ============================================================
+# Build e distribuição
+# ============================================================
+
+build/
+dist/
+.eggs/
+*.egg
+*.egg-info/
+
+
+# ============================================================
+# Arquivos temporários
+# ============================================================
+
+*.tmp
+*.temp
+*.log
+*.bak
+*.bak_real
+*.swp
+*.swo
+*~
+
+
+# ============================================================
+# Backups locais
+# ============================================================
+
+* - Copia.*
+* - Cópia.*
+
+
+# ============================================================
+# Artefatos Android e binários de análise
+# ============================================================
+
+*.apk
+*.apks
+*.idsig
+*.so
+*.xz
+
+/apks/
+/kwai_apks/
+/kwai-base-decoded/
+/kwai-lite-analysis/
+/kwai-lite-apks/
+/kwai-phone-apks/
+/signed-apks/
+/signed-phone-apks/
+
+
+# ============================================================
+# Ferramentas e material de investigação local
+# ============================================================
+
+/frida-gadget/
+/frida_scripts/
+/experiments/
+/technical_material/
+
+# Saídas locais da CLI; somente os exemplos do repositório são versionados.
+/samples/*
+!/samples/exemplo_busca.json
+!/samples/exemplo_comentarios.json
+!/samples/exemplo_perfil.json
+
+# Material fixo e vetores sintéticos usados pelo assinador local distribuído.
+!/kwai_collector/security/kwai_lite_103_sig3_material.bin
+!/tests/fixtures/native_getclock_vectors.json
+!/tests/fixtures/native_sig3_vectors.json
+
+
+# ============================================================
+# Certificados e chaves locais
+# ============================================================
+
+*.cer
+*.cert
+*.pem
+*.p12
+*.pfx
+*.key
+
+
+# ============================================================
+# Arquivos compactados de material técnico
+# ============================================================
+
+*.zip
+*.7z
+*.rar
+
+# Configurações locais.
+*.local

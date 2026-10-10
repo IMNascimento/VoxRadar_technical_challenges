@@ -1,5 +1,28 @@
 # Desafio Técnico · Kwai
 
+## Solução entregue · Nível 1
+
+Implementação de `teusdev7` para busca por palavra-chave, listagem de perfil e coleta de comentários principais, com CLI, paginação, deduplicação e assinatura local por requisição.
+
+```bash
+poetry install
+poetry run kwai-collector --help
+```
+
+
+Verificações locais:
+
+```bash
+poetry run pytest tests -q
+poetry run ruff check kwai_collector tests
+poetry run ruff format --check kwai_collector tests
+poetry run mypy kwai_collector
+```
+
+O fluxo padrão de comentários funciona sem `.env`, token, endpoint de assinatura ou emulador. Consulte o [guia de instalação e comandos](docs/USAGE.md) e a [documentação técnica](docs/COLETA_COMENTARIOS.md).
+
+---
+
 > **Área:** Web Scraping / Coleta de dados · **Branch:** `challenge/kwai` · **Níveis:** 0 (Iniciante) · 1 · 2 · 3 (Avançado)
 >
 > ℹ️ O processo geral (fork, entrega e avaliação) está no [README da `main`](../../tree/main). Esta branch descreve **apenas este desafio** e **este README é o índice**: ele explica o problema, o que há em cada arquivo e como escolher o seu nível.

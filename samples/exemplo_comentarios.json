@@ -1,0 +1,26 @@
+[
+  {
+    "id": "1001",
+    "postagem_url": "https://www.kwai.com/@usuario_exemplo/video/1234567890",
+    "autor": {
+      "usuario": "comentador_exemplo",
+      "id": "5001"
+    },
+    "texto": "Comentário fictício utilizado para demonstrar o contrato de saída.",
+    "curtidas": 12,
+    "data": "2026-10-09T12:00:00+00:00",
+    "coletado_em": "2026-10-09T15:00:00+00:00"
+  },
+  {
+    "id": "1002",
+    "postagem_url": "https://www.kwai.com/@usuario_exemplo/video/1234567890",
+    "autor": {
+      "usuario": "outro_usuario",
+      "id": null
+    },
+    "texto": "Segundo comentário fictício.",
+    "curtidas": 3,
+    "data": null,
+    "coletado_em": "2026-10-09T15:00:01+00:00"
+  }
+]

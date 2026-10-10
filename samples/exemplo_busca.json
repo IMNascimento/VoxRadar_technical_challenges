@@ -1,0 +1,38 @@
+[
+  {
+    "id": null,
+    "url": "https://www.kwai.com/@usuario_exemplo/video/1234567890",
+    "autor": {
+      "usuario": "usuario_exemplo",
+      "id": null,
+      "url_perfil": null
+    },
+    "texto": "Publicação fictícia utilizada como exemplo.",
+    "data_publicacao": null,
+    "engajamento": {
+      "curtidas": 1250,
+      "comentarios": 42,
+      "compartilhamentos": null,
+      "visualizacoes": 18750
+    },
+    "coletado_em": "2026-10-09T15:00:00Z"
+  },
+  {
+    "id": null,
+    "url": "https://www.kwai.com/@outro_usuario/video/9876543210",
+    "autor": {
+      "usuario": "outro_usuario",
+      "id": null,
+      "url_perfil": null
+    },
+    "texto": "Segundo resultado fictício de busca.",
+    "data_publicacao": null,
+    "engajamento": {
+      "curtidas": 820,
+      "comentarios": 17,
+      "compartilhamentos": null,
+      "visualizacoes": 9400
+    },
+    "coletado_em": "2026-10-09T15:00:00Z"
+  }
+]

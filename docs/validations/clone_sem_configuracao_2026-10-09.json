@@ -1,0 +1,33 @@
+{
+  "recorded_at_utc": "2026-10-09T04:26:29.351471+00:00",
+  "branch": "solution/kwai-nivel1-teusdev7",
+  "distribution": "kwai_collector-0.1.0-py3-none-any.whl",
+  "wheel_sha256": "4bf3036a18d77fe9c277035131f0d9afe5f0028507719c5d6b0cfc11ca4bee72",
+  "installed_package_isolated": true,
+  "dotenv_present": false,
+  "kwai_environment_present": false,
+  "configured_endpoint": false,
+  "configured_tokens": false,
+  "saved_cookies_used": false,
+  "android_required": false,
+  "external_signing_service_required": false,
+  "material_bundled": true,
+  "material_sha256": "2194294f914ef583414ce81a6ac036c034e7c7b441e5685a5ffe9bc219165d3c",
+  "runs": [
+    {
+      "max_comments": "50",
+      "exit_code": 0,
+      "root_comments": 50,
+      "unique_ids": 50,
+      "checkpoint_remaining": false
+    },
+    {
+      "max_comments": "todos",
+      "exit_code": 0,
+      "root_comments": 88,
+      "unique_ids": 88,
+      "checkpoint_remaining": false
+    }
+  ],
+  "validated": true
+}
