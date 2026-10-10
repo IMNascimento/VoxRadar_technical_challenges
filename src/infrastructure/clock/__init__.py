@@ -1,0 +1,1 @@
+"""Relógio do sistema."""
