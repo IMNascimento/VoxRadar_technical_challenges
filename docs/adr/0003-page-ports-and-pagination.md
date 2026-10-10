@@ -6,7 +6,7 @@
 |---|---|
 | **Status** | ✅ Aceita — adotada no código examinado. |
 | **Data** | 2026-10-08 — registro retrospectivo, não data original comprovada. |
-| **Escopo** | Perfil, raízes e sublistas; busca não é paginada. |
+| **Escopo** | Busca, perfil, raízes e sublistas. |
 
 ## Contexto
 

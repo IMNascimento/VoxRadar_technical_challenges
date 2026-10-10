@@ -134,7 +134,7 @@ def search_posts(
     verbose: VerboseOption = False,
     sort_by: SortOption = None,
 ) -> None:
-    """Search posts by keywords and export posts.json (no cursor pagination)."""
+    """Search posts by keywords, paging each one, and export posts.json."""
     setup_logging(verbose=verbose)
     command = _build_command(lambda: SearchCommand.create(keyword, limit=limit, sort_by=sort_by))
     _run_exports("search", lambda services: [services.search_posts.execute(command)], out)

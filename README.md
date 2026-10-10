@@ -191,8 +191,10 @@ usa** (mais leve e rápido que automatizar um navegador), com uma exceção
 justificada:
 
 - **Busca** — `POST /rest/o/w/pwa/v2/search/word/outer`. Endpoint JSON público.
-  **Não usa cursor**: retorna um lote único de até ~50 itens por palavra-chave
-  (a partir daí a API responde erro). A CLI aceita **múltiplas palavras-chave**
+  Pagina **por deslocamento**: o `pcursor` do corpo avança de `count` em `count`
+  (até 50 por página). A API não devolve cursor nem lista vazia; quando a
+  palavra se esgota, repete itens, então cada palavra termina na primeira
+  página sem post novo. A CLI aceita **múltiplas palavras-chave**
   e **deduplica** os resultados por `id`; `--limit` é o **teto do total final
   após dedupe entre as palavras-chave** (não por palavra-chave).
 - **Postagens de usuário** — vêm da **API móvel anônima**, em dois passos:
@@ -243,9 +245,10 @@ justificada:
 
 ### Limitações conhecidas
 
-O coletor entrega o **máximo confirmado sem autenticação**:
+O coletor entrega o que foi **confirmado sem autenticação**:
 
-- **Busca** não tem paginação por cursor no endpoint público (teto ~50/keyword).
+- **Busca**: paginada por deslocamento, sem sinal de fim na API; cada palavra
+  termina na primeira página que não traz post novo.
 - **Postagens de usuário**: coleta **anônima e paginada** via API móvel,
   paginada por `pcursor` (30 por página). O teto de ~20 itens era a via SSR, que
   foi removida.

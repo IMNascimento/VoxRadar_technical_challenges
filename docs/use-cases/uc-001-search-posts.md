@@ -15,20 +15,22 @@
 
 1. Receber palavras e limite positivo; CLI monta serviços com `Settings`.
 2. Validar que a lista não está vazia e gerar o carimbo `coletado_em`.
-3. Definir `count` entre 1 e 50 a partir do limite total.
-4. Consultar uma palavra na API web; adapter devolve modelos do lote.
+3. Definir `count` entre 1 e 50 a partir do limite total; é o tamanho da página.
+4. Consultar uma página da palavra na API web, com `pcursor` começando em `0`;
+   o adapter devolve os modelos e o deslocamento da próxima página.
 5. Acumular postagens únicas por id truthy ou URL.
-6. Repetir para outra palavra se houver e o teto não tiver sido atingido.
+6. Se a página trouxe post novo e o teto não foi atingido, pedir a próxima
+   página; senão, seguir para outra palavra, se houver.
 7. Devolver a lista fatiada ao limite. `search` grava `posts.json` na pasta da
    execução antes de fechar clientes.
 
 ## Fluxos alternativos
 
 - **2a — Lista vazia:** `InvalidInputError`; a CLI sinaliza entrada inválida.
-- **3a — Limite > 50:** registrar warning e pedir 50 por palavra; não paginar essa palavra.
 - **4a — Transporte transitório:** repetir no mesmo servidor conforme configuração.
 - **4b — Erro de negócio:** interromper sem retry de negócio.
-- **4c — Lote vazio:** pode continuar para outra palavra; não declara quebra automaticamente.
+- **4c — Página sem post novo:** a palavra se esgotou (a API repete itens em vez
+  de devolver lista vazia); segue para outra palavra, sem erro.
 - **4d — Feed inválido:** mapper aplica sua política de descarte/rejeição; consultar Schemas.
 - **4e — Falha com itens de palavras anteriores:** `CollectionInterruptedError`
   preserva esses itens; palavras seguintes não são consultadas.
@@ -38,7 +40,6 @@
 
 - Sucesso não prova correspondência exaustiva de toda a plataforma à palavra.
 - O `count` não diminui conforme o saldo entre palavras.
-- `pcursor=0` no payload não significa paginação implementada.
 - A API Python não valida internamente `limit >= 1`; esse é o contrato de uso
   documentado, imposto na CLI.
 

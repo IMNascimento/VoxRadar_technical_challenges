@@ -14,6 +14,21 @@ from ...domain.value_objects.cursor import Cursor
 
 
 @dataclass(frozen=True)
+class SearchPage:
+    """Uma página da busca web de uma palavra-chave.
+
+    A busca pagina por deslocamento: não há cursor de continuação na resposta.
+
+    Attributes:
+        posts: postagens já mapeadas para o contrato.
+        next_offset: deslocamento (``pcursor``) da próxima página.
+    """
+
+    posts: list[Post]
+    next_offset: int
+
+
+@dataclass(frozen=True)
 class ProfilePage:
     """Uma página do feed de perfil devolvida pela API móvel.
 

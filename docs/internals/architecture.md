@@ -185,12 +185,13 @@ sequenceDiagram
 
 [`SearchPosts`](../../src/application/use_cases/search_posts.py) usa `ISearchApiPort`,
 implementada pelo [`KwaiWebAdapter`](../../src/infrastructure/kwai/web/adapter.py).
-Cada palavra-chave processada gera uma chamada lógica ao endpoint
+Cada página gera uma chamada lógica ao endpoint
 `POST /rest/o/w/pwa/v2/search/word/outer`; retries podem gerar novas tentativas.
 
-Não há paginação por cursor nesse caso de uso. O caso de uso pede o `limit` a
-cada palavra-chave; o adapter envia `count` entre 1 e `SEARCH_MAX_COUNT` (50),
-registrando aviso quando corta o pedido. O limite final é aplicado após a deduplicação entre palavras-chave,
+A busca pagina por deslocamento. O caso de uso pede o `limit` a cada página; o
+adapter envia `count` entre 1 e `SEARCH_PAGE_SIZE` (50) e o `pcursor` da página,
+e devolve o deslocamento da próxima. Cada palavra termina na primeira página
+sem post novo, porque a API repete itens em vez de devolver lista vazia. O limite final é aplicado após a deduplicação entre palavras-chave,
 por id ou, na ausência dele, URL. Ao atingir o limite, as palavras-chave
 restantes não são consultadas.
 

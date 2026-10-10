@@ -31,11 +31,12 @@ class SearchPosts(ISearchPostsPort):
         self._clock = clock
 
     def execute(self, command: SearchCommand) -> CollectionResult[Post]:
-        """Busca as palavras-chave em ordem e deduplica o resultado.
+        """Busca as palavras-chave em ordem, paginando cada uma, e deduplica o resultado.
 
-        Faz uma requisição por palavra-chave e para assim que o total de
-        postagens únicas atinge ``limit``: as palavras-chave restantes não são
-        consultadas.
+        Cada palavra-chave é paginada por deslocamento até uma página não trazer
+        postagem nova: a API não sinaliza o fim e repete itens quando a palavra
+        se esgota. Para assim que o total de postagens únicas atinge ``limit``:
+        as páginas e palavras-chave restantes não são consultadas.
 
         Args:
             command: palavras-chave, teto do resultado final (após dedupe) e
@@ -57,13 +58,19 @@ class SearchPosts(ISearchPostsPort):
         unique = unique_posts()
         for keyword in command.keywords:
             logger.info("buscando por %r (limite=%d)", keyword, command.limit)
-            try:
-                batch = self._api.search_posts(
-                    keyword, limit=command.limit, collected_at=collected_at
-                )
-            except KwaiCollectorError as exc:
-                reraise_with_partial(exc, order_posts(posts, command.sort_by))
-            posts.extend(unique.filter(batch))
+            offset = 0
+            while len(posts) < command.limit:
+                try:
+                    page = self._api.search_page(
+                        keyword, offset=offset, limit=command.limit, collected_at=collected_at
+                    )
+                except KwaiCollectorError as exc:
+                    reraise_with_partial(exc, order_posts(posts, command.sort_by))
+                new_posts = list(unique.filter(page.posts))
+                if not new_posts:
+                    break
+                posts.extend(new_posts)
+                offset = page.next_offset
             if len(posts) >= command.limit:
                 break
         logger.info("busca retornou %d postagens únicas", len(posts))

@@ -88,7 +88,7 @@ as condições de fim da [paginação](../flows/pagination.md); isso não equiva
 em `exports/`; com ele, usa a pasta-base escolhida. Exemplos completos,
 e organização dos arquivos estão em [CLI](./cli.md).
 
-Não confunda `--limit` com tamanho de página: a busca pede de 1 a 50 por palavra,
+Não confunda `--limit` com tamanho de página: a busca pede de 1 a 50 por página,
 perfil pede 30, raízes pedem 50 e sublistas pedem 100.
 
 ## Saída e falhas

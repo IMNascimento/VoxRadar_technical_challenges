@@ -8,7 +8,7 @@ from unittest.mock import Mock
 import pytest
 
 from src.application.dtos.commands import ProfileCollectionCommand, SearchCommand
-from src.application.dtos.pages import ProfilePage
+from src.application.dtos.pages import ProfilePage, SearchPage
 from src.application.exceptions import CollectionInterruptedError
 from src.application.ports.clock_port import IClockPort
 from src.application.ports.profile_api_port import IProfileApiPort
@@ -87,7 +87,7 @@ def test_individual_metric_orders_posts_descending(
         result = CollectUserPosts(api, _clock).execute(command)
     else:
         api = Mock(spec=ISearchApiPort)
-        api.search_posts.return_value = posts
+        api.search_page.return_value = SearchPage(posts, 0)
         result = SearchPosts(api, _clock).execute(SearchCommand.create(["p"], sort_by=metric)).items
     assert [post.id for post in result] == ids
     assert [asdict(post) for post in posts] == before
@@ -95,7 +95,7 @@ def test_individual_metric_orders_posts_descending(
 
 def test_limit_selects_posts_before_sorting() -> None:
     api = Mock(spec=ISearchApiPort)
-    api.search_posts.return_value = _posts()
+    api.search_page.return_value = SearchPage(_posts(), 0)
     command = SearchCommand.create(["p"], limit=2, sort_by="views")
     result = SearchPosts(api, _clock).execute(command)
     assert [post.id for post in result.items] == ["2", "1"]
@@ -107,7 +107,7 @@ def test_unknown_counts_follow_zero_and_ties_preserve_order() -> None:
         for post, likes in zip(_posts(), [None, 0, 0], strict=True)
     ]
     api = Mock(spec=ISearchApiPort)
-    api.search_posts.return_value = posts
+    api.search_page.return_value = SearchPage(posts, 0)
     result = SearchPosts(api, _clock).execute(SearchCommand.create(["p"], sort_by="likes"))
     assert [post.id for post in result.items] == ["2", "3", "1"]
     assert posts[0].engajamento.curtidas is None
@@ -127,7 +127,7 @@ def test_sorted_partial_preserves_cause(source: str) -> None:
         partial = exc.value.partial
     else:
         api = Mock(spec=ISearchApiPort)
-        api.search_posts.side_effect = [_posts(), cause]
+        api.search_page.side_effect = [SearchPage(_posts(), 0), cause]
         command = SearchCommand.create(["first", "second"], sort_by="likes")
         result = SearchPosts(api, _clock).execute(command)
         assert isinstance(result.error, CollectionInterruptedError)

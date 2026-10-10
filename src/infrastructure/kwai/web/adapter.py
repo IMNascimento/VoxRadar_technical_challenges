@@ -9,20 +9,17 @@ from __future__ import annotations
 
 from typing import Any
 
+from ....application.dtos.pages import SearchPage
 from ....application.ports.search_api_port import ISearchApiPort
-from ....domain.entities.post import Post
 from ....domain.value_objects.iso_timestamp import IsoTimestamp
-from ....shared.logging.logging_config import get_logger
 from ..mapping import parse_feeds
 from .client import WEB_ORIGIN, KwaiWebClient
-
-logger = get_logger("http")
 
 SEARCH_PATH = "/rest/o/w/pwa/v2/search/word/outer"
 # Origem fixa que o site envia no payload de busca (capturada do front).
 SEARCH_REQUEST_SOURCE = 1102
-# O endpoint "outer" de busca não usa cursor e limita o lote a ~50 itens.
-SEARCH_MAX_COUNT = 50
+# Itens por página da busca; o ``pcursor`` do corpo é o deslocamento da página.
+SEARCH_PAGE_SIZE = 50
 
 
 class KwaiWebAdapter(ISearchApiPort):
@@ -36,46 +33,40 @@ class KwaiWebAdapter(ISearchApiPort):
         """
         self._client = client
 
-    def search_posts(self, keyword: str, *, limit: int, collected_at: IsoTimestamp) -> list[Post]:
-        """Busca postagens de uma palavra-chave (uma requisição).
+    def search_page(
+        self, keyword: str, *, offset: int, limit: int, collected_at: IsoTimestamp
+    ) -> SearchPage:
+        """Busca uma página de postagens de uma palavra-chave (uma requisição).
 
         Args:
             keyword: palavra-chave da busca.
-            limit: itens desejados; o lote pedido ao endpoint não passa de
-                :data:`SEARCH_MAX_COUNT`.
+            offset: deslocamento da página, enviado como ``pcursor``.
+            limit: itens desejados; a página pedida não passa de
+                :data:`SEARCH_PAGE_SIZE`.
             collected_at: carimbo de coleta aplicado a todas as postagens.
 
         Returns:
-            As postagens do lote, na ordem do feed.
+            As postagens da página, na ordem do feed, e o deslocamento da
+            próxima página.
 
         Raises:
             KwaiTransportError: se a requisição falhar no transporte/status.
             UnexpectedResponseError: se o corpo não for um objeto JSON ou ``feeds`` não for uma lista.
             KwaiApiError: se o Kwai sinalizar erro de negócio.
         """
-        payload = _build_search_payload(keyword, _request_count(limit))
-        body = self._client.post_json(SEARCH_PATH, payload)
-        return parse_feeds(body.get("feeds"), collected_at=collected_at.value)
+        count = min(limit, SEARCH_PAGE_SIZE)
+        body = self._client.post_json(SEARCH_PATH, _build_search_payload(keyword, count, offset))
+        posts = parse_feeds(body.get("feeds"), collected_at=collected_at.value)
+        return SearchPage(posts=posts, next_offset=offset + count)
 
 
-def _request_count(limit: int) -> int:
-    """Calcula os itens pedidos ao endpoint: o ``limit``, até o lote máximo da busca."""
-    if limit > SEARCH_MAX_COUNT:
-        logger.warning(
-            "endpoint de busca limita o lote a %d itens por palavra-chave; usando count=%d",
-            SEARCH_MAX_COUNT,
-            SEARCH_MAX_COUNT,
-        )
-    return min(limit, SEARCH_MAX_COUNT)
-
-
-def _build_search_payload(keyword: str, count: int) -> dict[str, Any]:
+def _build_search_payload(keyword: str, count: int, offset: int) -> dict[str, Any]:
     return {
         "searchWord": keyword,
         "count": count,
         "fromUser": False,
         "mobile": True,
-        "pcursor": 0,
+        "pcursor": offset,
         "request_source": SEARCH_REQUEST_SOURCE,
         "url": f"{WEB_ORIGIN}/discover",
     }

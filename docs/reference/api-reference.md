@@ -192,8 +192,8 @@ fechá-los. `Services` é o context manager disponível.
 As assinaturas abaixo são **referência de interface**, não código para executar:
 
 ```text
-ISearchApiPort.search_posts(keyword: str, *, limit: int, collected_at: IsoTimestamp)
-    -> list[Post]
+ISearchApiPort.search_page(keyword: str, *, offset: int, limit: int,
+    collected_at: IsoTimestamp) -> SearchPage
 IProfileApiPort.resolve_user(handle: Handle) -> UserId
 IProfileApiPort.fetch_profile_page(user_id: UserId, *, cursor: Cursor,
     collected_at: IsoTimestamp) -> ProfilePage
@@ -206,7 +206,7 @@ ICommentApiPort.fetch_sub_page(post: PostReference, *, root_comment_id: CommentI
 Uma chamada de página não percorre a lista toda. A aplicação decide continuar.
 O tamanho de página é decisão do adapter, que conhece o endpoint
 (`COMMENTS_PAGE_SIZE`, `SUBLIST_PAGE_SIZE` e `PROFILE_PAGE_SIZE` no adapter móvel;
-`SEARCH_MAX_COUNT` no web, que limita o lote pedido por palavra-chave).
+`SEARCH_PAGE_SIZE` no web, que limita a página da busca).
 As portas são classes abstratas (`ABC`) que servem de seam de I/O: um fake que herda a porta a substitui sem fazer HTTP;
 não são um sistema de plugins registrável em runtime.
 

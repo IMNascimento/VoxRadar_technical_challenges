@@ -2,7 +2,7 @@
 
 # 🔀 Fluxo — Busca de postagens
 
-> **Resumo:** consultar palavras-chave sequencialmente, mapear feeds e entregar
+> **Resumo:** paginar cada palavra-chave em sequência, mapear feeds e entregar
 > uma lista deduplicada com limite total.
 
 ```mermaid
@@ -13,23 +13,32 @@ flowchart LR
     Web --> Map[Mapear feeds]
     Map --> Dedup[Deduplicar por id ou URL]
     Dedup --> Limit{Limite total atingido?}
-    Limit -->|Não, há palavra| Word
-    Limit -->|Sim ou fim| Output[Lista limitada de Post]
+    Limit -->|Sim| Output[Lista limitada de Post]
+    Limit -->|Não| New{Veio post novo?}
+    New -->|Sim| Next[pcursor += count]
+    Next --> Web
+    New -->|Não, há palavra| Word
+    New -->|Não, fim| Output
 ```
 
 ## Etapas
 
 1. **Validar e preparar:** `SearchPosts.execute` rejeita lista vazia; calcula
    `count` uma vez a partir do limite total, não do saldo entre palavras.
-2. **Consultar:** `KwaiWebAdapter` envia JSON para
-   `/rest/o/w/pwa/v2/search/word/outer`, com retry de transporte selecionado.
+2. **Consultar:** `KwaiWebAdapter.search_page` envia JSON para
+   `/rest/o/w/pwa/v2/search/word/outer` com o `pcursor` da página, com retry de
+   transporte selecionado, e devolve o deslocamento da próxima página.
 3. **Mapear:** `parse_feeds` aplica o contrato e a política de itens de feed.
 4. **Deduplicar:** `SearchPosts` conserva a primeira ocorrência por id truthy ou URL.
-5. **Parar:** ao atingir o limite, não consulta palavras restantes; fatia o resultado ao teto.
-6. **Falhar:** erro de uma palavra posterior preserva itens das anteriores em parcial.
+5. **Paginar:** se a página trouxe post novo e o limite não foi atingido, pede
+   a próxima página da mesma palavra; sem post novo, passa para a próxima palavra.
+6. **Parar:** ao atingir o limite, não pede mais páginas nem consulta palavras
+   restantes; fatia o resultado ao teto.
+7. **Falhar:** erro de uma palavra posterior preserva itens das anteriores em parcial.
 
-O corpo contém `pcursor=0`, mas o caso de uso não pagina. Limite maior que 50
-não cria páginas adicionais da mesma palavra.
+A API não devolve cursor de continuação nem lista vazia: quando a palavra se
+esgota, repete itens já entregues. Por isso o fim de cada palavra é a primeira
+página sem post novo.
 
 ## Regras envolvidas
 

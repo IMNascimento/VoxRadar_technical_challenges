@@ -25,7 +25,7 @@ from src.infrastructure.kwai.mobile.adapter import (
     USER_INFO_PATH,
 )
 from src.infrastructure.kwai.mobile.client import COMMENT_HOST
-from src.infrastructure.kwai.web.adapter import SEARCH_MAX_COUNT, SEARCH_PATH
+from src.infrastructure.kwai.web.adapter import SEARCH_PAGE_SIZE, SEARCH_PATH
 
 BASE = "https://www.kwai.com"
 MOBILE_URL = COMMENT_HOST + COMMENT_PATH
@@ -81,12 +81,17 @@ def test_search_repete_em_status_transitorio_e_conclui(
     retry_settings: Settings, no_backoff: list[float], search_response: dict[str, Any]
 ) -> None:
     rota = respx.post(BASE + SEARCH_PATH).mock(
-        side_effect=[httpx.Response(503), httpx.Response(200, json=search_response)]
+        side_effect=[
+            httpx.Response(503),
+            httpx.Response(200, json=search_response),
+            httpx.Response(200, json=search_response),
+        ]
     )
     with build_services(retry_settings) as services:
         posts = services.search_posts.execute(SearchCommand.create(["sports"], limit=10)).items
 
-    assert len(rota.calls) == 2
+    # 503 + 1ª página + 2ª página sem post novo, que encerra a palavra-chave
+    assert len(rota.calls) == 3
     assert len(posts) == len(search_response["feeds"])
     assert len(no_backoff) == 1
 
@@ -118,7 +123,7 @@ def test_search_nao_repete_erro_de_cliente(
 
 
 @respx.mock
-def test_search_limita_o_lote_pedido_ao_maximo_do_endpoint(
+def test_search_pagina_por_deslocamento_ate_pagina_sem_post_novo(
     settings: Settings, search_response: dict[str, Any]
 ) -> None:
     rota = respx.post(BASE + SEARCH_PATH).mock(
@@ -127,7 +132,12 @@ def test_search_limita_o_lote_pedido_ao_maximo_do_endpoint(
     with build_services(settings) as services:
         services.search_posts.execute(SearchCommand.create(["sports"], limit=10_000))
 
-    assert json.loads(rota.calls.last.request.content)["count"] == SEARCH_MAX_COUNT
+    sent = [json.loads(call.request.content) for call in rota.calls]
+    # a resposta repetida não traz post novo: a 2ª página encerra a palavra-chave
+    assert [(body["pcursor"], body["count"]) for body in sent] == [
+        (0, SEARCH_PAGE_SIZE),
+        (SEARCH_PAGE_SIZE, SEARCH_PAGE_SIZE),
+    ]
 
 
 def test_search_sem_palavra_chave() -> None:

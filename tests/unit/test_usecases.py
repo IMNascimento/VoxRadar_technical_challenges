@@ -27,6 +27,7 @@ from src.application.dtos.pages import (
     CommentPage,
     ProfilePage,
     RootComment,
+    SearchPage,
     SubComment,
     SubCommentPage,
 )
@@ -138,15 +139,21 @@ def _orphan_comment(author_id: str, text: str) -> Comment:
 
 
 class FakeWebApi(ISearchApiPort):
-    """ISearchApiPort fake: devolve lotes por palavra-chave e registra as chamadas."""
+    """ISearchApiPort fake: páginas por palavra-chave; esgotadas, repete a última, como a API."""
 
-    def __init__(self, batches: dict[str, Lote] | None = None) -> None:
+    def __init__(self, batches: dict[str, Lote | list[Lote]] | None = None) -> None:
         self._batches = batches or {}
-        self.search_calls: list[tuple[str, int, str]] = []
+        self.search_calls: list[tuple[str, int, int, str]] = []
 
-    def search_posts(self, keyword: str, *, limit: int, collected_at: IsoTimestamp) -> list[Post]:
-        self.search_calls.append((keyword, limit, collected_at.value))
-        return [_post(pid, url, collected_at.value) for pid, url in self._batches.get(keyword, [])]
+    def search_page(
+        self, keyword: str, *, offset: int, limit: int, collected_at: IsoTimestamp
+    ) -> SearchPage:
+        self.search_calls.append((keyword, offset, limit, collected_at.value))
+        entry = self._batches.get(keyword, [])
+        pages: list[Lote] = entry if entry and isinstance(entry[0], list) else [entry]  # type: ignore[list-item]
+        page = pages[min(offset // limit, len(pages) - 1)]
+        posts = [_post(pid, url, collected_at.value) for pid, url in page]
+        return SearchPage(posts=posts, next_offset=offset + limit)
 
 
 class FakeProfileApi(IProfileApiPort):
@@ -247,19 +254,33 @@ def test_search_deduplica_entre_palavras_chave_pela_chave_do_dominio() -> None:
     ]
 
 
-def test_search_faz_uma_requisicao_por_palavra_chave_com_um_carimbo_unico() -> None:
+def test_search_pagina_cada_palavra_chave_ate_pagina_sem_post_novo() -> None:
     api = FakeWebApi({"a": [("1", "u1")], "b": [("2", "u2")]})
     clock = _Clock()
 
     posts = SearchPosts(api, clock).execute(SearchCommand.create(["a", "b"], limit=5)).items
 
     assert clock.calls == 1
-    assert len(api.search_calls) == 2
-    assert [call[0] for call in api.search_calls] == ["a", "b"]
-    assert {call[1] for call in api.search_calls} == {5}
-    stamps = {call[2] for call in api.search_calls}
+    assert [p.id for p in posts] == ["1", "2"]
+    # a 2ª página de cada palavra repete a 1ª: sem post novo, a palavra termina
+    assert [call[:3] for call in api.search_calls] == [
+        ("a", 0, 5),
+        ("a", 5, 5),
+        ("b", 0, 5),
+        ("b", 5, 5),
+    ]
+    stamps = {call[3] for call in api.search_calls}
     assert len(stamps) == 1
-    assert all(p.coletado_em == api.search_calls[0][2] for p in posts)
+    assert all(p.coletado_em == api.search_calls[0][3] for p in posts)
+
+
+def test_search_segue_as_paginas_enquanto_vierem_posts_novos() -> None:
+    api = FakeWebApi({"a": [[("1", "u1"), ("2", "u2")], [("3", "u3"), ("4", "u4")], [("5", "u5")]]})
+
+    posts = _search(api, ["a"], limit=4).items
+
+    assert [p.id for p in posts] == ["1", "2", "3", "4"]
+    assert [call[1] for call in api.search_calls] == [0, 4]
 
 
 @pytest.mark.parametrize("limit", [0, -1])
@@ -326,12 +347,14 @@ def test_search_limite_atingido_interrompe_palavras_chave_restantes() -> None:
 
 def test_search_falha_na_segunda_palavra_chave_preserva_a_primeira() -> None:
     class _FalhaEmB(FakeWebApi):
-        def search_posts(
-            self, keyword: str, *, limit: int, collected_at: IsoTimestamp
-        ) -> list[Post]:
+        def search_page(
+            self, keyword: str, *, offset: int, limit: int, collected_at: IsoTimestamp
+        ) -> SearchPage:
             if keyword == "b":
                 raise _GatewayError("gateway fora do ar")
-            return super().search_posts(keyword, limit=limit, collected_at=collected_at)
+            return super().search_page(
+                keyword, offset=offset, limit=limit, collected_at=collected_at
+            )
 
     api = _FalhaEmB({"a": [("1", "https://u/1"), ("2", "https://u/2")]})
 
@@ -344,9 +367,9 @@ def test_search_falha_na_segunda_palavra_chave_preserva_a_primeira() -> None:
 
 def test_search_falha_na_primeira_palavra_chave_sem_parcial() -> None:
     class _FalhaSempre(FakeWebApi):
-        def search_posts(
-            self, keyword: str, *, limit: int, collected_at: IsoTimestamp
-        ) -> list[Post]:
+        def search_page(
+            self, keyword: str, *, offset: int, limit: int, collected_at: IsoTimestamp
+        ) -> SearchPage:
             raise _GatewayError("gateway fora do ar")
 
     result = _search(_FalhaSempre(), ["a"])

@@ -58,8 +58,8 @@ poetry run kwai-collector search --keyword parkour --keyword sports --limit 20
 ```
 
 `--keyword` pode ser repetido. O limite é de até vinte posts únicos no resultado
-total, não vinte por palavra. Esse comando não coleta comentários nem pagina
-por cursor; gera `exports/search/<execução>/posts.json`.
+total, não vinte por palavra. Cada palavra é paginada até atingir o limite ou
+até uma página sem post novo. Esse comando não coleta comentários; gera `exports/search/<execução>/posts.json`.
 
 ### 6. Comentários de uma única postagem
 
@@ -127,7 +127,7 @@ poetry run kwai-collector comments --help
 | `--out/-o` | Pasta-base opcional, padrão `exports/` no diretório de execução. |
 | `--verbose/-v` | Logs DEBUG. |
 
-Limites exigem pelo menos 1. Busca tem padrão 20 e não pagina por cursor;
+Limites exigem pelo menos 1. Busca tem padrão 20 e pagina cada palavra;
 perfil e comentários não têm teto explícito por padrão. Use limites pequenos
 ao começar: expansão de respostas pode multiplicar chamadas e volume de dados.
 

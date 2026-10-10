@@ -15,15 +15,16 @@
 
 ## RN-002 — Limite de busca
 
-- **Regra:** na CLI, o limite é inteiro ≥ 1 e padrão 20. Cada palavra processada
-  pede `count=min(limit, 50)`; o resultado final contém no máximo `limit`
+- **Regra:** na CLI, o limite é inteiro ≥ 1 e padrão 20. Cada página pede
+  `count=min(limit, 50)` e o `pcursor` avança de `count` em `count`; a palavra
+  termina na primeira página sem post novo. O resultado final contém no máximo `limit`
   postagens únicas, e palavras restantes não são consultadas após atingir o teto.
   `SearchCommand` rejeita a lista vazia e qualquer palavra-chave em branco
   antes de consultar a API, inclusive em chamadas Python.
-- **Motivação:** separar tamanho do lote externo do teto agregado solicitado.
+- **Motivação:** separar o tamanho da página externa do teto agregado solicitado.
 - **Implementada em:** `src/application/use_cases/search_posts.py`, `src/entrypoints/cli/app.py`.
-- **Exceções:** não existe paginação por cursor na busca; `limit > 50` não gera
-  outra página da mesma palavra. A API Python não repete a validação `min=1` da CLI.
+- **Exceções:** a API não devolve cursor nem lista vazia; quando a palavra se
+  esgota, repete itens, por isso o fim é a página sem post novo. A API Python não repete a validação `min=1` da CLI.
 - **Verificação:** `tests/unit/test_usecases.py`, `tests/integration/test_collector.py`, `tests/integration/test_cli.py`.
 
 ## RN-003 — Limite de perfil e de raízes
