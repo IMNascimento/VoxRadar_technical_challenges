@@ -250,7 +250,7 @@ para a raiz. `respostas_total` representa a quantidade declarada pelo Kwai,
 não uma garantia de que todas foram obtidas.
 
 Quando a quantidade declarada difere das respostas únicas entregues, a aplicação
-registra um aviso com ambas as contagens e causa não determinada. Isso também
+registra um aviso com ambas as contagens. Isso também
 vale para uma expansão interrompida ou uma raiz sem id consultável. O aviso não
 altera o JSON, o retry nem o código de saída; as falhas continuam sob a política
 de resultado parcial abaixo. Totais desconhecidos não são comparados.

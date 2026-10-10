@@ -64,7 +64,7 @@ nova captura executada na elaboração desta documentação.
 | Campos de postagens | 90 posts únicos; relatório registra 720 verificações de campos no conjunto analisado. | Campos examinados; não payload inteiro. |
 | Comentários | 30 ocorrências de raiz, 20 únicas; 6 respostas únicas e 12 checks de vínculo. | Nenhuma divergência registrada no conjunto comparado. Previews não foram comparados. |
 | Smoke anônimo | Resolução de usuário, 30 posts, 50 raízes e 52 respostas; sem autenticação e sem sig3. | Alvos e momento observados. |
-| Contagem de respostas | Raiz declarava 59; sublista entregou 52 e fim. | Causa da diferença não determinada; sem prova de completude. |
+| Contagem de respostas | Raiz declarava 59; sublista entregou 52 e fim. | Fim de cursor sem prova de completude. |
 | Cursor inicial da sublista | Vazio e `fetch_from_begin` retornaram as mesmas 52 e fim no teste desse alvo. | O coletor mantém cursor vazio; não cria fallback de cursor por isso. |
 
 Os relatórios locais ficam em `out/frida-audit-20261007-174633/`, ignorado pelo
@@ -92,7 +92,6 @@ estão disponíveis nas capturas compartilháveis para recalcular tudo offline.
 
 ## Questões ainda abertas
 
-- Causa das sete respostas não entregues no alvo de referência.
 - Combinação exata por trás das respostas vazias anteriores com contexto completo.
 - Algoritmo e correlação completa de saída de `atlasSign` com `__NS_sig3`.
 - Compatibilidade da identidade atual com outros builds/regiões/contextos.

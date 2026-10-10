@@ -43,7 +43,7 @@ def _warn_reply_count(root: RootComment, collected: int) -> None:
     """Avisa quando o total declarado diverge do entregue, sem inferir a causa."""
     if replies_diverge(root.declared_replies, collected):
         logger.warning(
-            "respostas da raiz %s: declaradas=%d, coletadas=%d; causa não determinada",
+            "respostas da raiz %s: declaradas=%d, coletadas=%d",
             root.comment.id or "sem id",
             root.declared_replies,
             collected,

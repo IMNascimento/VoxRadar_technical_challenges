@@ -255,7 +255,7 @@ O coletor entrega o que foi **confirmado sem autenticação**:
 - **Comentários**: coleta **anônima e paginada** via API móvel, com rate limit.
   Fim de cursor é o fim informado pela API, não prova de completude: em uma
   observação, 59 respostas foram declaradas e 52 entregues com `no_more`.
-  Não foi determinada a causa. O algoritmo de `__NS_sig3` não foi reproduzido;
+  O algoritmo de `__NS_sig3` não foi reproduzido;
   as rotas atuais funcionaram sem ele. A hipótese `atlasSign(caminho + sig)`
   não descreve as entradas maiores observadas no app.
 

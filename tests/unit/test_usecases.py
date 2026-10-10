@@ -777,7 +777,6 @@ def test_reply_count_difference_warns_without_losing_other_roots(
     comments = _comments(api, with_replies=True).items
     assert [comment.id for comment in comments] == ["r1", "s1", "s2", "r2", "s3"]
     assert f"declaradas={declared}, coletadas=2" in caplog.text
-    assert "causa não determinada" in caplog.text
 
 
 @pytest.mark.parametrize("declared", [None, 0, 1])

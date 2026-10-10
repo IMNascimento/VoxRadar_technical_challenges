@@ -12,7 +12,7 @@
 
 Uma falha posterior não deve ocultar os itens já coletados nem virar sucesso
 silencioso. A API pode declarar um total diferente das respostas entregues;
-o alvo observado declarou 59 e entregou 52 com fim de cursor, sem causa determinada.
+o alvo observado declarou 59 e entregou 52 com fim de cursor.
 O contrato JSON não possui envelope de completude/erro.
 
 ## Alternativas
@@ -35,7 +35,7 @@ essa lista e sai com `1`; sem itens, propaga erro sem nova saída.
 Manter recuperação local para loop de sublista: warning e próxima raiz. Outra
 falha de sublista interrompe com respostas lidas e raízes pendentes preservadas.
 Não rejeitar a coleta só pela diferença numérica; conservar o total declarado
-e avisar quantidade única entregue com causa não determinada.
+e avisar a quantidade única entregue.
 
 ## Trade-offs
 

@@ -44,7 +44,7 @@
 - **Regra:** na raiz expandida, `respostas_total` conserva `sub_comment_count`
   convertido. Quando o total é conhecido e não negativo, comparar com respostas
   únicas entregues nessa expansão; divergência para mais ou menos gera warning
-  com “causa não determinada”, sem mudar JSON, retry ou exit code.
+  com as duas contagens, sem mudar JSON, retry ou exit code.
 - **Motivação:** tornar a diferença observável sem inventar itens ou uma causa.
 - **Implementada em:** `src/domain/services/replies.py` (`replies_diverge`),
   `src/infrastructure/kwai/mobile/adapter.py`,

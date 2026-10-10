@@ -42,7 +42,7 @@ evitar observar um ciclo que só seria acusado ao continuar consumindo.
 | Raízes interrompidas, expansão pedida | Parcial de `Comment`; expansão ainda não começou. |
 | Transporte/estrutura de sublista inválida | Mantém respostas já lidas e todas as raízes; interrompe expansão. |
 | Loop de sublista | Mantém respostas, registra warning e segue próxima raiz. |
-| Quantidade divergente | Warning com causa não determinada; não é interrupção por si só. |
+| Quantidade divergente | Warning com as duas contagens; não é interrupção por si só. |
 | Escrita parcial falha | Exit `1` permanece; não há garantia de arquivo utilizável. |
 
 Uma página de comentários rejeitada não entrega os seus itens válidos isolados.
