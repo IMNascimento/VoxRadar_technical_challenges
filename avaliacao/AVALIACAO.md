@@ -18,7 +18,7 @@ Método do `docs/avaliacao.md`: cada critério recebe nota 0–4 e a nota final 
 CLI Python (`python -m kwai_collector busca|usuario|comentarios`) em `sistema/`. Busca e posts de usuário usam rotas WEB públicas do kwai.com via `curl_cffi` (sem assinatura) e **funcionam de verdade** (testado contra o Kwai real). Comentários usam a rota mobile e exigem `sig` (MD5 reimplementado em Python) + `__NS_sig3`, gerado por um serviço local Java/unidbg embutido (`server/`, ~73 MB de JDK 8 Windows + libs + APK, mais um `server.zip` duplicado de 73 MB). O código é bem separado em módulos, há 180 testes offline (todos passam), amostras reais, `PESQUISA.md` extenso e PR bem descrito, com decisões e limitações honestas. Pontos fracos: o fluxo de comentários só está documentado para Windows (`cmd.exe /c server\run.bat`); não consegui subir o servidor no Linux, então comentários não foram verificados ao vivo. O README tem referências quebradas (`cd kwai-collector`, `TROUBLESHOOTING.md`, `requirements-dev.txt` inexistentes). `busca` não tem `--out` e não gera um JSON único, ao contrário do exemplo do enunciado. O campo `texto` sai com entidades HTML sem decodificar.
 
 ## (b) Evidência de execução
-Ambiente: Linux, Python 3.12.3, sem Java. venv em `scratchpad/venvs/pr1`.
+Ambiente: Linux, Python 3.12.3, sem Java. venv em `(ambiente de avaliação)`.
 
 Instalação (README): `pip install -r requirements.txt` OK. `cp .env.example .env` OK. O README manda fazer `cd kwai-collector`, mas a pasta é `sistema/` (ambiguidade; o PR diz `cd sistema`).
 
@@ -88,3 +88,11 @@ Bônus = +7
 **Nota base final = 60,00 + 7 (bônus) = 67,00 / 100**
 
 Ajuste: comentários não executam no Linux (unicorn nativo não carrega) e a documentação cobre só Windows. A corretude foi rebaixada de 3 para 2, o que leva a nota base de 78,25 para 67,00. Para recuperar os pontos: documentar e testar a execução em Linux/macOS (ou oferecer um caminho sem JVM/emulador) e corrigir a `README` conforme a seção (f).
+
+---
+
+## Escalabilidade
+A análise de escalabilidade desta solução (coleta em larga escala, gargalos, medições e roadmap) está em [ESCALABILIDADE.md](ESCALABILIDADE.md).
+
+## Não concordou com a nota?
+Se você não concorda com a sua nota, chame **IMNascimento**: [github.com/IMNascimento](https://github.com/IMNascimento).
