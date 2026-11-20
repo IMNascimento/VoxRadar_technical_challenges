@@ -24,7 +24,7 @@ Não há segredo commitado. O sal `382700b563f4` em `app_identity.py:17` é uma 
 
 ## (b) Evidência de execução
 
-Ambiente: venv isolado em `scratchpad/venvs/pr5`, `poetry install` com `VIRTUAL_ENV` apontando para ele.
+Ambiente: venv isolado em `(ambiente de avaliação)`, `poetry install` com `VIRTUAL_ENV` apontando para ele.
 
 - Falha de instalação: nenhuma. O `poetry.toml` do candidato tem `in-project=true`. Minha primeira tentativa criou um venv em `~/.cache/pypoetry`, que removi, e refiz com `VIRTUAL_ENV`. Isso foi erro meu, não do candidato.
 - `poetry run kwai-collector --help` funciona e lista os 3 comandos. `python -m src --help` também existe.
@@ -56,7 +56,7 @@ Não houve falha externa de Kwai durante os testes. Os 200 resultados da busca e
 
 ### Validação do schema
 
-Rodei `val5.py` (no scratchpad) sobre todos os JSON gerados e sobre `samples/`:
+Rodei `val5.py`(ambiente de avaliação)`samples/`:
 
 - `Postagem`: `url`, `engajamento` com as 4 chaves e `coletado_em` presentes em todos.
 - `Comentario`: `postagem_url`, `texto` e `coletado_em` presentes em todos.
@@ -138,3 +138,11 @@ Subtotal = **83,75**. Bônus = **+5**.
 **Nota final = 88,75 / 100** (base 83,75 + bônus 5).
 
 Sem eliminatórias: nenhum segredo commitado, o nível foi cumprido e o código roda.
+
+---
+
+## Escalabilidade
+A análise de escalabilidade desta solução (coleta em larga escala, gargalos, medições e roadmap) está em [ESCALABILIDADE.md](ESCALABILIDADE.md).
+
+## Não concordou com a nota?
+Se você não concorda com a sua nota, chame **IMNascimento**: [github.com/IMNascimento](https://github.com/IMNascimento).
