@@ -97,4 +97,12 @@ Bônus (até +10): **+1**. O scroll para paginação do usuário está escrito (
 - Documentação: 2/4 × 15% = 7,5
 - **Soma = 60,0** + bônus 1 = **61,0 (nota final), nota base 60,0**
 
-Avaliação feita em 2026-11-20. Artefatos de execução em `.../scratchpad/out6/`. Criei `.env` no checkout (gitignored) ao seguir o README; nenhum arquivo versionado foi alterado e não houve push.
+Avaliação feita em 2026-11-20. Artefatos de execução em `(ambiente de avaliação)`. Criei `.env` no checkout (gitignored) ao seguir o README; nenhum arquivo versionado foi alterado e não houve push.
+
+---
+
+## Escalabilidade
+A análise de escalabilidade desta solução (coleta em larga escala, gargalos, medições e roadmap) está em [ESCALABILIDADE.md](ESCALABILIDADE.md).
+
+## Não concordou com a nota?
+Se você não concorda com a sua nota, chame **IMNascimento**: [github.com/IMNascimento](https://github.com/IMNascimento).
