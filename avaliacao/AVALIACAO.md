@@ -27,7 +27,7 @@ Ferramentas limpas: `pytest` 235 passed, `ruff` ok, `mypy` ok, tudo offline. A e
 Sem segredo commitado.
 
 ## (b) Evidência de execução
-Ambiente: Poetry 2.4.3, venv em `scratchpad/venvs/pr3`, Python 3.12.
+Ambiente: Poetry 2.4.3, venv em `(ambiente de avaliação)`, Python 3.12.
 
 | Comando / verificação | Resultado |
 |---|---|
@@ -110,3 +110,11 @@ Não houve falha externa nem do código nas execuções reais.
 | **Total** | | | **70,75** |
 
 Eliminatórios: nenhum segredo commitado (varredura por tokens/cookies/bearer sem achados; `.env.example` só tem delays e tentativas).
+
+---
+
+## Escalabilidade
+A análise de escalabilidade desta solução (coleta em larga escala, gargalos, medições e roadmap) está em [ESCALABILIDADE.md](ESCALABILIDADE.md).
+
+## Não concordou com a nota?
+Se você não concorda com a sua nota, chame **IMNascimento**: [github.com/IMNascimento](https://github.com/IMNascimento).
