@@ -18,7 +18,7 @@ Método do `docs/avaliacao.md`: cada critério recebe nota 0–4 e a nota final 
 Pacote `kwai_collector` com CLI Typer (`search`, `profile`, `comments [--with-replies]`), HTTP puro (httpx), sem navegador. Busca usa o endpoint JSON web. Perfil e comentários usam a API móvel anônima do Kwai Lite, com `sig` MD5 reproduzido em Python e validado por teste contra um request real. Instala e roda como o README manda, as 3 funcionalidades funcionam contra o Kwai real, e lint/tipos/testes passam limpos. É uma entrega forte para o Nível 1. Os pontos fracos são: singleton de config no import, erro de config/`ValidationError` virando traceback, modo "tudo ou nada" e documentação muito acima do necessário (25 arquivos em `docs/`). A dependência de um sal de app extraído por engenharia reversa é frágil e merece nota de risco.
 
 ## (b) Evidência de execução
-Ambiente: venv isolado em `scratchpad/venvs/pr4` (Python 3.12.3, Poetry do sistema). Usei `POETRY_VIRTUALENVS_IN_PROJECT=false` porque o `poetry.toml` do candidato força `in-project = true`. Checkout não modificado (`git status` limpo; removi o `.coverage` que eu gerei).
+Ambiente: venv isolado em `(ambiente de avaliação)` (Python 3.12.3, Poetry do sistema). Usei `POETRY_VIRTUALENVS_IN_PROJECT=false` porque o `poetry.toml` do candidato força `in-project = true`. Checkout não modificado (`git status` limpo; removi o `.coverage` que eu gerei).
 
 | Passo | Resultado |
 |---|---|
@@ -109,3 +109,11 @@ Total de bônus: **+4**
 ## (g) Nota base final
 Soma ponderada = 82,5; bônus = +4.
 **Nota base: 82,5 / 100. Com bônus: 86,5.**
+
+---
+
+## Escalabilidade
+A análise de escalabilidade desta solução (coleta em larga escala, gargalos, medições e roadmap) está em [ESCALABILIDADE.md](ESCALABILIDADE.md).
+
+## Não concordou com a nota?
+Se você não concorda com a sua nota, chame **IMNascimento**: [github.com/IMNascimento](https://github.com/IMNascimento).
